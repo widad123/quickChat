@@ -13,8 +13,8 @@ class MessageServiceTest {
         MessageDTO message = messageService.sendMessage("Alice", "Bob", "Hello, Bob!");
 
         assertNotNull(message);
-        assertEquals("Alice", message.getSender());
-        assertEquals("Bob", message.getRecipient());
-        assertEquals("Hello, Bob!", message.getContent());
+        assertEquals("Alice", message.sender());
+        assertEquals("Bob", message.recipient());
+        assertEquals("Hello, Bob!", message.content());
     }
 }

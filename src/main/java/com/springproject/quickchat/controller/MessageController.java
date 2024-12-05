@@ -1,6 +1,6 @@
 package com.springproject.quickchat.controller;
 
-import com.springproject.quickchat.model.MessageDTO;
+import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +15,12 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/send")
-    public MessageDTO sendMessage(@RequestParam String sender, @RequestParam String recipient, @RequestParam String content) {
-        return messageService.sendMessage(sender, recipient, content);
+    public Message sendMessage(@RequestParam String discussionId, @RequestParam String sender, @RequestParam String content) {
+        return messageService.sendMessage(discussionId, sender, content);
     }
 
     @GetMapping("/received")
-    public List<MessageDTO> getMessagesForRecipient(@RequestParam String recipient) {
-        return messageService.getMessagesForRecipient(recipient);
+    public List<Message> getMessagesForDiscussion(@RequestParam String discussionId) {
+        return messageService.getMessagesForDiscussion(discussionId);
     }
 }

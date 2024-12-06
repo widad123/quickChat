@@ -61,4 +61,43 @@ class MessageServiceTest {
         assertEquals(1, messages.size(), "Le nombre de messages dans la discussion est incorrect.");
     }
 
+    @Test
+    void editMessage_validContent_updatesMessage() {
+        Message message = new Message("1", "1", "Alice", "Original content", LocalDateTime.now().toString());
+        messageRepository.save(message);
+
+        Message updatedMessage = messageService.editMessage("1", "Updated content");
+
+        assertEquals("Updated content", updatedMessage.getContent(), "Le contenu du message n'a pas été mis à jour.");
+        assertTrue(updatedMessage.isEdited(), "Le statut 'édité' devrait être vrai.");
+    }
+
+    @Test
+    void editMessage_nonexistentMessage_throwsException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("nonexistent", "New content"));
+        assertEquals("Message introuvable ou déjà supprimé.", exception.getMessage());
+    }
+
+
+    @Test
+    void editMessage_emptyContent_throwsException() {
+        Message message = new Message("1", "1", "Alice", "Original content", LocalDateTime.now().toString());
+        messageRepository.save(message);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", "   "));
+        assertEquals("Le contenu du message ne peut pas être vide.", exception.getMessage());
+    }
+
+    @Test
+    void editMessage_exceedsMaxLength_throwsException() {
+        Message message = new Message("1", "1", "Alice", "Original content", LocalDateTime.now().toString());
+        messageRepository.save(message);
+
+        String newContent = "a".repeat(501);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", newContent));
+        assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", exception.getMessage());
+    }
+
+
 }

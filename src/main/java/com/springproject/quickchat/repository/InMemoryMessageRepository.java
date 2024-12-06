@@ -28,7 +28,7 @@ public class InMemoryMessageRepository implements MessageRepository {
         return messages.stream()
                 .filter(message -> message.getId().equals(messageId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Message non trouvé : " + messageId));
+                .orElse(null);
     }
 
 }

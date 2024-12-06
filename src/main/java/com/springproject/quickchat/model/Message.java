@@ -55,4 +55,8 @@ public class Message {
     public void markAsDeleted() {
         this.deleted = true;
     }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
 }

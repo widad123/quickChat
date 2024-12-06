@@ -17,4 +17,13 @@ public class MessageController {
     public void sendMessage(@RequestBody Message message) {
          messageService.sendMessage(message);
     }
+
+    @PutMapping("/edit")
+    public Message editMessage(
+            @RequestParam String messageId,
+            @RequestParam String newContent
+    ) {
+        return messageService.editMessage(messageId, newContent);
+    }
+
 }

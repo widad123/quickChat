@@ -7,7 +7,7 @@ import java.util.List;
 
 
 @Repository
-public interface MessageRepository {
+public interface MessageRepository{
     void save(Message message);
 
     List<Message> findAllByDiscussionId(String discussionId);

@@ -6,7 +6,16 @@ public class MessageDTO {
     private String content;
     private String timestamp;
 
-    // Getters and Setters
+    public MessageDTO(String sender, String recipient, String content, String timestamp) {
+        this.sender = sender;
+        this.recipient = recipient;
+        this.content = content;
+        this.timestamp = timestamp;
+    }
+
+    public MessageDTO() {
+    }
+
     public String getSender() {
         return sender;
     }

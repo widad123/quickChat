@@ -2,7 +2,6 @@ package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.repository.DiscussionRepository;
-import com.springproject.quickchat.repository.InMemoryDiscussionRepository;
 import com.springproject.quickchat.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 

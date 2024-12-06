@@ -15,12 +15,7 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/send")
-    public Message sendMessage(@RequestParam String discussionId, @RequestParam String sender, @RequestParam String content) {
-        return messageService.sendMessage(discussionId, sender, content);
-    }
-
-    @GetMapping("/received")
-    public List<Message> getMessagesForDiscussion(@RequestParam String discussionId) {
-        return messageService.getMessagesForDiscussion(discussionId);
+    public void sendMessage(@RequestBody Message message) {
+         messageService.sendMessage(message);
     }
 }

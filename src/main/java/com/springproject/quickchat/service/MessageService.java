@@ -1,30 +1,25 @@
 package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.model.Message;
+import com.springproject.quickchat.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
-    private final List<Message> messages = new ArrayList<>();
 
-    public Message sendMessage(String discussionId, String sender, String content) {
-        Message message = new Message(
-                String.valueOf(messages.size() + 1),
-                discussionId,
-                sender,
-                content,
-                LocalDateTime.now().toString()
-        );
-        messages.add(message);
-        return message;
+    private MessageRepository messageRepository;
+
+    public MessageService(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
     }
 
-    public List<Message> getMessagesForDiscussion(String discussionId) {
+    public void sendMessage(Message message) {
+        this.messageRepository.save(message);
+    }
+
+    /*public List<Message> getMessagesForDiscussion(String discussionId) {
         return messages.stream()
                 .filter(message -> message.getDiscussionId().equals(discussionId))
                 .collect(Collectors.toList());
@@ -48,5 +43,5 @@ public class MessageService {
             }
         }
         throw new IllegalArgumentException("Message ID non trouvé : " + messageId);
-    }
+    }*/
 }

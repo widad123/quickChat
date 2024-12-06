@@ -19,6 +19,13 @@ public class Message {
         this.deleted = false;
     }
 
+    public Message(String id, String sender, String content, String timestamp) {
+        this.id = id;
+        this.sender = sender;
+        this.content = content;
+        this.timestamp = timestamp;
+    }
+
     public String getId() {
         return id;
     }

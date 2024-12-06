@@ -2,12 +2,15 @@ package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.model.Discussion;
 import com.springproject.quickchat.repository.DiscussionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class DiscussionService {
+
+    @Autowired
     private final DiscussionRepository discussionRepository;
 
     public DiscussionService(DiscussionRepository discussionRepository) {

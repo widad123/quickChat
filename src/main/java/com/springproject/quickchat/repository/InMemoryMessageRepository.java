@@ -1,11 +1,13 @@
 package com.springproject.quickchat.repository;
 
 import com.springproject.quickchat.model.Message;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Repository
 public class InMemoryMessageRepository implements MessageRepository {
     public final List<Message> messages = new ArrayList<>();
 

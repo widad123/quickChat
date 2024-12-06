@@ -26,4 +26,14 @@ public class DiscussionService {
     public List<Discussion> getDiscussionsForUser(String userId) {
         return discussionRepository.findAllByUserId(userId);
     }
+
+    public boolean isParticipant(String discussionId, String userId) {
+        Discussion discussion = discussionRepository.findById(discussionId);
+        if (discussion == null) {
+            return false;
+        }
+        return discussion.getUser1().equals(userId) || discussion.getUser2().equals(userId);
+    }
+
+
 }

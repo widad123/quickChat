@@ -50,4 +50,5 @@ public class DiscussionServiceTest {
         assertTrue(bobDiscussions.stream().anyMatch(d -> d.getUser2().equals("Charlie")));
         assertTrue(bobDiscussions.stream().anyMatch(d -> d.getUser1().equals("Alice")));
     }
+
 }

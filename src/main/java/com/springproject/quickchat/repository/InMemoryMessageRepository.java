@@ -29,4 +29,8 @@ public class InMemoryMessageRepository implements MessageRepository {
                 .orElseThrow(() -> new IllegalArgumentException("Message non trouvé : " + messageId));
     }
 
+    public List<Message> findAll() {
+        return new ArrayList<>(messages);
+    }
+
 }

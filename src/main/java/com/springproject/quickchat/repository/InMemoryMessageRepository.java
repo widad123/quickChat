@@ -4,6 +4,7 @@ import com.springproject.quickchat.model.Message;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class InMemoryMessageRepository implements MessageRepository {
     public final List<Message> messages = new ArrayList<>();
@@ -11,6 +12,21 @@ public class InMemoryMessageRepository implements MessageRepository {
     @Override
     public void save(Message message) {
         messages.add(message);
+    }
+
+    @Override
+    public List<Message> findAllByDiscussionId(String discussionId) {
+        return messages.stream()
+                .filter(message -> message.getDiscussionId().equals(discussionId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Message findById(String messageId) {
+        return messages.stream()
+                .filter(message -> message.getId().equals(messageId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Message non trouvé : " + messageId));
     }
 
 }

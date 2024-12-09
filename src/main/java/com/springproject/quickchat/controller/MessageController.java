@@ -1,5 +1,6 @@
 package com.springproject.quickchat.controller;
 
+import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,8 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/send")
-    public void sendMessage(@RequestBody Message message) {
-         messageService.sendMessage(message);
+    public void sendMessage(@RequestParam String senderId,@RequestBody MessageDTO message) {
+         messageService.sendMessage(senderId, message);
     }
 
     @PutMapping("/edit")

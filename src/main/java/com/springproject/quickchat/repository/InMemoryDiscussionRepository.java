@@ -31,4 +31,9 @@ public class InMemoryDiscussionRepository implements DiscussionRepository {
                 .orElse(null);
     }
 
+    @Override
+    public String findDiscussionByUsers(String user1, String user2) {
+        return "";
+    }
+
 }

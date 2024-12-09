@@ -2,9 +2,7 @@ package com.springproject.quickchat.Entity;
 
 import com.springproject.quickchat.model.Message;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 

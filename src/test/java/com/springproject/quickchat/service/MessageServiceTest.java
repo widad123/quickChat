@@ -1,6 +1,7 @@
 package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.dto.MessageDTO;
+import com.springproject.quickchat.exception.MessageNotFoundException;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.model.MessageContent;
 import com.springproject.quickchat.repository.DiscussionRepository;
@@ -146,4 +147,26 @@ class MessageServiceTest {
         );
         assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", longException.getMessage());
     }
+
+    @Test
+    void deleteMessage_messageExists_deletesSuccessfully() {
+        String messageId = "message1";
+        Message message = Message.create("message1", "discussion1", "user1", "user2", "Hello", LocalDateTime.now());
+
+        messageRepository.save(message);
+
+        messageService.deleteMessage(messageId);
+
+        assertFalse(messageRepository.findMessageById(messageId).isPresent());
+    }
+
+    @Test
+    void deleteMessage_messageNotFound_throwsMessageNotFoundException() {
+        String messageId = "nonExistingMessage";
+
+        assertThrows(MessageNotFoundException.class, () -> {
+            messageService.deleteMessage(messageId);
+        });
+    }
+
 }

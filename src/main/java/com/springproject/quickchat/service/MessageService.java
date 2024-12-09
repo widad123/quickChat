@@ -1,6 +1,8 @@
 package com.springproject.quickchat.service;
 
+import com.springproject.quickchat.Entity.MessageEntity;
 import com.springproject.quickchat.dto.MessageDTO;
+import com.springproject.quickchat.exception.MessageNotFoundException;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.MessageRepository;
@@ -41,6 +43,13 @@ public class MessageService {
 
     public List<Message> getMessagesForDiscussion(String discussionId) {
         return messageRepository.findMessagesByDiscussionId(discussionId);
+    }
+
+    public void deleteMessage(String messageId) {
+        MessageEntity messageEntity = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException("Message not found"));
+
+        messageRepository.deleteById(messageId);
     }
 
 }

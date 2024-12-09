@@ -25,4 +25,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, String> 
                 .collect(Collectors.toList());
     }
     Optional<MessageEntity> findById(String messageId);
+
+    void deleteById(String messageId);
+
 }

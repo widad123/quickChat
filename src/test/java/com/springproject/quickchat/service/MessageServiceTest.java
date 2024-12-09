@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -145,5 +146,71 @@ class MessageServiceTest {
                 MessageContent.from(longContent)
         );
         assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", longException.getMessage());
+    }
+
+    //EditionMessage
+
+    @Test
+    void editMessage_validMessage_updatesContent() {
+        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
+        messageRepository.save(message);
+
+        Message updatedMessage = messageService.editMessage("1", "Updated content");
+
+        assertEquals("Updated content", updatedMessage.getContent(), "Le contenu du message n'a pas été mis à jour.");
+        assertTrue(updatedMessage.isEdited(), "Le message devrait être marqué comme édité.");
+    }
+
+    @Test
+    void editMessage_nonexistentMessage_throwsException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("nonexistent", "New content"));
+        assertEquals("Message introuvable.", exception.getMessage());
+    }
+
+    @Test
+    void editMessage_deletedMessage_throwsException() {
+        Message message = Message.create(
+                UUID.randomUUID().toString(),
+                "discussionId1",
+                "Alice",
+                "Bob",
+                "Original content",
+                LocalDateTime.now()
+        );
+        message.markAsDeleted();
+        messageRepository.save(message);
+
+        System.out.println("Message after save: " + message.getId() + ", deleted = " + message.isDeleted());
+
+        assertTrue(message.isDeleted(), "Le message doit être marqué comme supprimé.");
+
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> messageService.editMessage(message.getId(), "Updated content"));
+
+        assertEquals("Impossible d'éditer un message supprimé.", exception.getMessage());
+
+        Message savedMessage = messageRepository.findMessageById(message.getId()).orElseThrow();
+        assertTrue(savedMessage.isDeleted(), "Le message doit toujours être marqué comme supprimé.");
+    }
+
+
+    @Test
+    void editMessage_emptyContent_throwsException() {
+        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
+        messageRepository.save(message);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", "   "));
+        assertEquals("Le contenu du message ne peut pas être vide.", exception.getMessage());
+    }
+
+    @Test
+    void editMessage_contentExceedsMaxLength_throwsException() {
+        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
+        messageRepository.save(message);
+
+        String newContent = "a".repeat(501);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", newContent));
+        assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", exception.getMessage());
     }
 }

@@ -13,9 +13,15 @@ import java.util.stream.Collectors;
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, String> {
 
+    public default Optional<Message> findMessageById(String messageId) {
+        return findById(messageId)
+                .map(entity -> Message.fromSnapshot(entity.toSnapshot()));
+    }
+
     List<MessageEntity> findAllByDiscussionId(String discussionId);
 
     default void save(Message message) {
+
         MessageEntity entity = MessageEntity.fromMessage(message.snapshot());
         save(entity);
     }

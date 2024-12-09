@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
@@ -27,8 +29,10 @@ public class MessageService {
             throw new IllegalArgumentException("La discussion entre les utilisateurs n'existe pas.");
         }
 
+        String messageId = UUID.randomUUID().toString();
+
         Message message = Message.create(
-                null,
+                messageId,
                 discussionId,
                 senderId,
                 messageDTO.idRecipient(),
@@ -40,7 +44,29 @@ public class MessageService {
     }
 
     public List<Message> getMessagesForDiscussion(String discussionId) {
-        return messageRepository.findMessagesByDiscussionId(discussionId);
+        return messageRepository.findMessagesByDiscussionId(discussionId).stream()
+                .filter(message -> !message.isDeleted())
+                .collect(Collectors.toList());
+    }
+
+
+    public Message editMessage(String messageId, String newContent) {
+        Message message = messageRepository.findMessageById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException("Message introuvable."));
+
+        System.out.println("Editing message: " + message.getId() + ", deleted = " + message.isDeleted());
+
+        if (message.isDeleted()) {
+            System.out.println("Cannot edit a deleted message: " + messageId);
+            throw new IllegalArgumentException("Impossible d'éditer un message supprimé.");
+        }
+
+        message.editContent(newContent);
+        message.setEdited(true);
+
+        messageRepository.save(message);
+
+        return message;
     }
 
 }

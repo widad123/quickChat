@@ -22,15 +22,34 @@ public class InMemoryMessageRepository implements MessageRepository {
 
     @Override
     public <S extends MessageEntity> S save(S entity) {
+        if (entity.getId() == null) {
+            throw new IllegalArgumentException("L'ID de l'entité ne peut pas être null.");
+        }
+
+        boolean removed = messages.removeIf(existing -> existing.getId().equals(entity.getId()));
+        System.out.println("Entity removed: " + removed);
+
         messages.add(entity);
+
+        System.out.println("Saved message: " + entity + ", deleted = " + entity.isDeleted());
+
         return entity;
     }
 
+
     @Override
     public void save(Message message) {
+        Optional<MessageEntity> existingEntity = findById(message.getId());
+        existingEntity.ifPresent(messages::remove);
+
         MessageEntity entity = MessageEntity.fromMessage(message.snapshot());
-        save(entity);
+
+        messages.add(entity);
+
+        System.out.println("Saved message: " + entity + ", deleted = " + entity.isDeleted());
     }
+
+
 
     @Override
     public Optional<MessageEntity> findById(String id) {
@@ -39,15 +58,26 @@ public class InMemoryMessageRepository implements MessageRepository {
                 .findFirst();
     }
 
+
     @Override
     public boolean existsById(String s) {
         return false;
     }
 
+    @Override
     public Optional<Message> findMessageById(String id) {
-        return findById(id)
-                .map(entity -> Message.fromSnapshot(entity.toSnapshot()));
+        return messages.stream()
+                .filter(entity -> entity.getId().equals(id))
+                .peek(entity -> System.out.println("Found entity: " + entity + ", deleted = " + entity.isDeleted()))
+                .map(entity -> {
+                    Message message = Message.fromSnapshot(entity.toSnapshot());
+                    System.out.println("Mapped to message: " + message + ", deleted = " + message.isDeleted());
+                    return message;
+                })
+                .findFirst();
     }
+
+
 
     @Override
     public List<MessageEntity> findAllByDiscussionId(String discussionId) {

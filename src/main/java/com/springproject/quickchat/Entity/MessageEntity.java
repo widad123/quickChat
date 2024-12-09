@@ -2,14 +2,10 @@ package com.springproject.quickchat.Entity;
 
 import com.springproject.quickchat.model.Message;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Builder
 @Table(name = "_Message")
 public class MessageEntity {
     @Id
@@ -37,6 +33,9 @@ public class MessageEntity {
     }
 
     public static MessageEntity fromMessage(Message.Snapshot snapshot) {
+        if (snapshot.id() == null) {
+            throw new IllegalArgumentException("L'ID du message ne peut pas être null.");
+        }
         return new MessageEntity(
                 snapshot.id(),
                 snapshot.discussionId(),
@@ -51,15 +50,24 @@ public class MessageEntity {
 
     public Message.Snapshot toSnapshot() {
         return new Message.Snapshot(
-                id,
-                discussionId,
-                sender,
-                recipient,
-                content,
-                timestamp,
-                edited,
-                deleted
+                this.id,
+                this.discussionId,
+                this.sender,
+                this.recipient,
+                this.content,
+                this.timestamp,
+                this.edited,
+                this.deleted
         );
+    }
+
+    // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getDiscussionId() {
@@ -78,12 +86,12 @@ public class MessageEntity {
         this.sender = sender;
     }
 
-    public String getId() {
-        return id;
+    public String getRecipient() {
+        return recipient;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
     public String getContent() {
@@ -94,12 +102,12 @@ public class MessageEntity {
         this.content = content;
     }
 
-    public String getRecipient() {
-        return recipient;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 
     public boolean isEdited() {
@@ -108,14 +116,6 @@ public class MessageEntity {
 
     public void setEdited(boolean edited) {
         this.edited = edited;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
     }
 
     public boolean isDeleted() {

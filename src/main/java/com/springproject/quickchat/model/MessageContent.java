@@ -1,7 +1,7 @@
 package com.springproject.quickchat.model;
 
 public class MessageContent {
-    private final String value;
+    private String value;
 
     private MessageContent(String value) {
         validate(value);
@@ -10,6 +10,11 @@ public class MessageContent {
 
     public static MessageContent from(String value) {
         return new MessageContent(value);
+    }
+
+    public void update(String newValue) {
+        validate(newValue);
+        this.value = newValue;
     }
 
     public String getValue() {

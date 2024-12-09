@@ -7,7 +7,7 @@ public class Message {
     private final String discussionId;
     private final String sender;
     private final String recipient;
-    private final MessageContent content;
+    private MessageContent content;
     private final LocalDateTime timestamp;
     private boolean edited;
     private boolean deleted;
@@ -24,7 +24,10 @@ public class Message {
     }
 
     public void editContent(String newContent) {
-        this.content.validate(newContent);
+        if (deleted) {
+            throw new IllegalArgumentException("Impossible d'éditer un message supprimé.");
+        }
+        this.content.update(newContent);
         this.edited = true;
     }
 
@@ -72,8 +75,17 @@ public class Message {
     }
 
     public static Message fromSnapshot(Snapshot snapshot) {
-        return new Message(snapshot.id(), snapshot.discussionId(), snapshot.sender(), snapshot.recipient(),
-                MessageContent.from(snapshot.content()), snapshot.timestamp());
+        Message message = new Message(
+                snapshot.id(),
+                snapshot.discussionId(),
+                snapshot.sender(),
+                snapshot.recipient(),
+                MessageContent.from(snapshot.content()),
+                snapshot.timestamp()
+        );
+        message.edited = snapshot.edited();
+        message.deleted = snapshot.deleted();
+        return message;
     }
 
     public static Message create(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp) {
@@ -82,5 +94,9 @@ public class Message {
 
     public void setEdited(boolean edited) {
         this.edited = edited;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

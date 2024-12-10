@@ -13,13 +13,13 @@ import lombok.NoArgsConstructor;
 public class FriendRequestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
     private String from;
     private String to;
     private boolean accepted;
     private boolean declined;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 

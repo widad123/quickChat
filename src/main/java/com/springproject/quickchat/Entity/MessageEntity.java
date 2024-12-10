@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class MessageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
     private String discussionId;
     private String sender;
     private String recipient;
@@ -23,7 +23,7 @@ public class MessageEntity {
 
     public MessageEntity() {}
 
-    public MessageEntity(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted) {
+    public MessageEntity(Long id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted) {
         this.id = id;
         this.discussionId = discussionId;
         this.sender = sender;
@@ -76,11 +76,11 @@ public class MessageEntity {
         this.sender = sender;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

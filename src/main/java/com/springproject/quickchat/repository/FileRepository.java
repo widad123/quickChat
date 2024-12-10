@@ -12,4 +12,3 @@ public interface FileRepository {
     File findById(String fileId);
     void delete(File file);
 }
-

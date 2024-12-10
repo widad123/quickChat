@@ -13,7 +13,7 @@ import lombok.*;
 public class FileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
     private String discussionId;
     private String sender;
     private String filename;
@@ -21,7 +21,7 @@ public class FileEntity {
     private String timestamp;
     private boolean deleted;
 
-    public FileEntity(String id, String discussionId, String sender, String filename, String url, String timestamp) {
+    public FileEntity(Long id, String discussionId, String sender, String filename, String url, String timestamp) {
         this.id = id;
         this.discussionId = discussionId;
         this.sender = sender;

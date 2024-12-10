@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/quick_chat
     username: postgres
-    password: 0636170292Ayt@
+    password: widad
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

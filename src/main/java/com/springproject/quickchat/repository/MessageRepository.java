@@ -30,11 +30,13 @@ public class MessageRepository implements MessageRepositoryInterface {
                 .orElseThrow(() -> new IllegalArgumentException("Discussion introuvable."));
         UserEntity senderEntity = userRepository.findById(message.getSender())
                 .orElseThrow(() -> new IllegalArgumentException("Émetteur introuvable."));
+        UserEntity recipientEntity = userRepository.findById(message.getRecipient())
+                .orElseThrow(() -> new IllegalArgumentException("Recepteur introuvable."));
         FileEntity fileEntity = message.getAttachedFile() != null
                 ? FileEntity.fromFile(message.getAttachedFile().snapshot())
                 : null;
 
-        MessageEntity messageEntity = MessageEntity.fromMessage(message.snapshot(), discussionEntity, senderEntity, fileEntity);
+        MessageEntity messageEntity = MessageEntity.fromMessage(message.snapshot(), discussionEntity, senderEntity, recipientEntity, fileEntity);
         jpaMessageRepository.save(messageEntity);
     }
 

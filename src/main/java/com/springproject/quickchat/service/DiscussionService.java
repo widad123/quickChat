@@ -8,6 +8,9 @@ import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class DiscussionService {
@@ -30,22 +33,37 @@ public class DiscussionService {
         return discussionRepository.findDiscussionByUsers(senderId, recipientId)
                 .map(DiscussionEntity::getId)
                 .orElseGet(() -> {
-                    Discussion discussion = Discussion.create(senderId, recipientId);
-                    DiscussionEntity entity = discussion.toEntity(sender, recipient);
+                    DiscussionEntity entity = new DiscussionEntity();
+                    entity.setParticipant1(sender);
+                    entity.setParticipant2(recipient);
+                    entity.setTitle("Conversation entre " + sender.getUsername() + " et " + recipient.getUsername());
                     return discussionRepository.save(entity).getId();
                 });
     }
 
-    public Discussion createDiscussion(DiscussionDTO dto) {
+    public DiscussionEntity createDiscussion(DiscussionDTO dto) {
         UserEntity user1 = userRepository.findById(dto.getUser1Id())
                 .orElseThrow(() -> new IllegalArgumentException("User1 not found: " + dto.getUser1Id()));
         UserEntity user2 = userRepository.findById(dto.getUser2Id())
                 .orElseThrow(() -> new IllegalArgumentException("User2 not found: " + dto.getUser2Id()));
 
-        Discussion discussion = Discussion.create(dto.getUser1Id(), dto.getUser2Id());
-        DiscussionEntity entity = discussion.toEntity(user1, user2);
+        DiscussionEntity entity = new DiscussionEntity();
+        entity.setParticipant1(user1);
+        entity.setParticipant2(user2);
+        entity.setTitle(dto.getTitle());
 
-        discussionRepository.save(entity);
-        return discussion;
+        return discussionRepository.save(entity);
+    }
+
+    public List<DiscussionDTO> getUserDiscussions(Long userId) {
+        List<DiscussionEntity> discussions = discussionRepository.findDiscussionsByUserId(userId);
+        return discussions.stream()
+                .map(discussion -> new DiscussionDTO(
+                        discussion.getId(),
+                        discussion.getParticipant1().getId(),
+                        discussion.getParticipant2().getId(),
+                        discussion.getTitle()
+                ))
+                .collect(Collectors.toList());
     }
 }

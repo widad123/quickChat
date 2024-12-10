@@ -1,8 +1,8 @@
-/*package com.springproject.quickchat.controller;
+package com.springproject.quickchat.controller;
 
-import com.springproject.quickchat.model.Discussion;
+import com.springproject.quickchat.dto.DiscussionDTO;
 import com.springproject.quickchat.service.DiscussionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,17 +11,15 @@ import java.util.List;
 @RequestMapping("/api/discussions")
 public class DiscussionController {
 
-    @Autowired
-    private DiscussionService discussionService;
+    private final DiscussionService discussionService;
 
-    @PostMapping
-    public void createDiscussion(@RequestParam String user1, @RequestParam String user2) {
-        discussionService.createDiscussion(user1, user2);
+    public DiscussionController(DiscussionService discussionService) {
+        this.discussionService = discussionService;
     }
 
-    @GetMapping
-    public List<Discussion> getDiscussionsForUser(@RequestParam String userId) {
-        return discussionService.getDiscussionsForUser(userId);
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<DiscussionDTO>> getUserDiscussions(@PathVariable Long userId) {
+        List<DiscussionDTO> discussions = discussionService.getUserDiscussions(userId);
+        return ResponseEntity.ok(discussions);
     }
 }
-*/

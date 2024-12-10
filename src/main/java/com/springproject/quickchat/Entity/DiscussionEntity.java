@@ -11,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "_Discussion")
 public class DiscussionEntity {
+
     @Id
     private Long id;
 

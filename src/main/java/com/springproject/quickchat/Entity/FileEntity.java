@@ -6,10 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class FileEntity {
     @Id
     private Long id;
@@ -41,7 +37,8 @@ public class FileEntity {
                 this.fileName,
                 this.fileType,
                 this.fileSize,
-                this.fileUrl
+                this.fileUrl,
+                false
         );
     }
 }

@@ -1,10 +1,10 @@
 package com.springproject.quickchat.controller;
 
-import com.springproject.quickchat.dto.FileDTO;
-import com.springproject.quickchat.dto.MessageDTO;
+import com.springproject.quickchat.dto.MessageRequest;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -17,11 +17,9 @@ public class MessageController {
 
     @PostMapping("/send")
     public void sendMessage(
-            @RequestParam Long senderId,
-            @RequestBody MessageDTO message,
-            @RequestParam(required = false) FileDTO file
+            @RequestBody MessageRequest messageRequest
     ) {
-        messageService.sendMessage(senderId, message, file);
+        messageService.sendMessage(messageRequest.getSenderId(), messageRequest.getMessage(), messageRequest.getFile());
     }
 
 
@@ -32,5 +30,12 @@ public class MessageController {
     ) {
         return messageService.editMessage(messageId, newContent);
     }
+
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<String> deleteFileFromMessage(@PathVariable Long messageId) {
+        messageService.removeFileFromMessage(messageId);
+        return ResponseEntity.ok("File removed from message successfully");
+    }
+
 
 }

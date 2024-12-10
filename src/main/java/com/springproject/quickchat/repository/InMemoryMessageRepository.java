@@ -25,11 +25,13 @@ public class InMemoryMessageRepository implements MessageRepositoryInterface {
                 .orElseThrow(() -> new IllegalArgumentException("Discussion introuvable."));
         UserEntity senderEntity = Optional.ofNullable(users.get(message.getSender()))
                 .orElseThrow(() -> new IllegalArgumentException("Émetteur introuvable."));
+        UserEntity recipientEntity = Optional.ofNullable(users.get(message.getRecipient()))
+                .orElseThrow(() -> new IllegalArgumentException("Recepteur introuvable."));
         FileEntity fileEntity = message.getAttachedFile() != null
                 ? FileEntity.fromFile(message.getAttachedFile().snapshot())
                 : null;
 
-        MessageEntity messageEntity = MessageEntity.fromMessage(message.snapshot(), discussionEntity, senderEntity, fileEntity);
+        MessageEntity messageEntity = MessageEntity.fromMessage(message.snapshot(), discussionEntity, senderEntity, recipientEntity, fileEntity);
         messages.put(messageEntity.getId(), messageEntity);
     }
 

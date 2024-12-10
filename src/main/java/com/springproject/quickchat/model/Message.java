@@ -47,6 +47,12 @@ public class Message {
         this.deleted = true;
     }
 
+    public void removeFile() {
+        if (this.attachedFile != null) {
+            this.attachedFile.markAsDeleted();
+        }
+    }
+
     public boolean isDeleted() {
         return deleted;
     }

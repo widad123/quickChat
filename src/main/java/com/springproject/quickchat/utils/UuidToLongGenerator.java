@@ -1,6 +1,5 @@
 package com.springproject.quickchat.utils;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class UuidToLongGenerator implements IdGenerator {

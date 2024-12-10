@@ -7,15 +7,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class LogEntity {
     @Id
     private Long id;
 
-    private String action; // e.g., "Message Sent", "File Uploaded"
+    private String action;
     private String details;
 
     private LocalDateTime timestamp;

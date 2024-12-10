@@ -11,6 +11,7 @@ public class File {
     private final String type;
     private final long size; // en octets
     private final String url;
+    private boolean isDeleted;
 
     @PrePersist
     public void prePersist() {
@@ -19,18 +20,23 @@ public class File {
         }
     }
 
-    private File(Long id, String name, String type, long size, String url) {
+    private File(Long id, String name, String type, long size, String url, boolean isDeleted) {
         validateFile(type, size);
         this.id = id;
         this.name = name;
         this.type = type;
         this.size = size;
         this.url = url;
+        this.isDeleted = isDeleted;
+    }
+
+    public void markAsDeleted() {
+        this.isDeleted = true;
     }
 
     private void validateFile(String type, long size) {
         List<String> allowedTypes = List.of("image/png", "image/jpeg", "video/mp4");
-        long maxFileSize = 200 * 1024 * 1024; // 200 MB
+        long maxFileSize = 200 * 1024 * 1024;
 
         if (!allowedTypes.contains(type)) {
             throw new IllegalArgumentException("Type de fichier non pris en charge : " + type);
@@ -41,8 +47,8 @@ public class File {
         }
     }
 
-    public static File create(Long id, String name, String type, long size, String url) {
-        return new File(id, name, type, size, url);
+    public static File create(Long id, String name, String type, long size, String url, boolean isDeleted) {
+        return new File(id, name, type, size, url, isDeleted);
     }
 
     public Long getId() {
@@ -65,13 +71,15 @@ public class File {
         return url;
     }
 
-    public record Snapshot(Long id, String name, String type, long size, String url) {}
+    public boolean isDeleted() {return isDeleted;}
+
+    public record Snapshot(Long id, String name, String type, long size, String url, boolean isDeleted) {}
 
     public Snapshot snapshot() {
-        return new Snapshot(id, name, type, size, url);
+        return new Snapshot(id, name, type, size, url, isDeleted);
     }
 
     public static File fromSnapshot(Snapshot snapshot) {
-        return new File(snapshot.id(), snapshot.name(), snapshot.type(), snapshot.size(), snapshot.url());
+        return new File(snapshot.id(), snapshot.name(), snapshot.type(), snapshot.size(), snapshot.url(), snapshot.isDeleted());
     }
 }

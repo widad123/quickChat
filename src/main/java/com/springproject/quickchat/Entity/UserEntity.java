@@ -1,24 +1,21 @@
 package com.springproject.quickchat.Entity;
 
+import com.springproject.quickchat.model.User;
 import com.springproject.quickchat.utils.UuidToLongGenerator;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Builder
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "users")
 public class UserEntity {
+
     @Id
     private Long id;
 
     private String username;
+    private String password;
     private String email;
 
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -41,6 +38,32 @@ public class UserEntity {
             id = new UuidToLongGenerator().generateId();
         }
     }
+    public static UserEntity fromUser(User.Snapshot snapshot) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(snapshot.id());
+        userEntity.setUsername(snapshot.username());
+        userEntity.setPassword(snapshot.password());
+        userEntity.setEmail(snapshot.email());
+        userEntity.setReceivedRequests(new ArrayList<>());
+        userEntity.setSentRequests(new ArrayList<>());
+        userEntity.setFriends(new ArrayList<UserEntity>());
+        return userEntity;
+    }
+
+    public UserEntity(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
+
+    public UserEntity(Long id, String username, String password, String email) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
+
+    public UserEntity() {}
 
     public Long getId() {
         return id;
@@ -58,11 +81,43 @@ public class UserEntity {
         this.username = username;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<FriendRequestEntity> getSentRequests() {
+        return sentRequests;
+    }
+
+    public void setSentRequests(List<FriendRequestEntity> sentRequests) {
+        this.sentRequests = sentRequests;
+    }
+
+    public List<FriendRequestEntity> getReceivedRequests() {
+        return receivedRequests;
+    }
+
+    public void setReceivedRequests(List<FriendRequestEntity> receivedRequests) {
+        this.receivedRequests = receivedRequests;
+    }
+
+    public List<UserEntity> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<UserEntity> friends) {
+        this.friends = friends;
     }
 }

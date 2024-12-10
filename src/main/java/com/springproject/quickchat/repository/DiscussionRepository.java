@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -18,4 +19,6 @@ public interface DiscussionRepository extends JpaRepository<DiscussionEntity, Lo
             "OR (d.participant1.id = :user2Id AND d.participant2.id = :user1Id)")
     Optional<DiscussionEntity> findDiscussionByUsers(Long user1Id, Long user2Id);
 
+    @Query("SELECT d FROM DiscussionEntity d WHERE d.participant1.id = :userId OR d.participant2.id = :userId")
+    List<DiscussionEntity> findDiscussionsByUserId(@Param("userId") Long userId);
 }

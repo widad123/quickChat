@@ -8,10 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -53,13 +50,18 @@ public class InMemoryDiscussionRepository implements DiscussionRepository {
     }
 
     @Override
-    public DiscussionEntity save(DiscussionEntity entity) {
+    public <S extends DiscussionEntity> S save(S entity) {
+        if (entity == null) {
+            throw new IllegalArgumentException("Entity cannot be null");
+        }
         if (entity.getId() == null) {
-            entity.setId(idGenerator.getAndIncrement());
+            entity.setId(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
         }
         discussions.put(entity.getId(), entity);
         return entity;
     }
+
+
 
     @Override
     public void deleteById(Long id) {
@@ -92,6 +94,11 @@ public class InMemoryDiscussionRepository implements DiscussionRepository {
                 .filter(d -> (d.getParticipant1().getId().equals(user1Id) && d.getParticipant2().getId().equals(user2Id)) ||
                         (d.getParticipant1().getId().equals(user2Id) && d.getParticipant2().getId().equals(user1Id)))
                 .findFirst();
+    }
+
+    @Override
+    public List<DiscussionEntity> findDiscussionsByUserId(Long userId) {
+        return List.of();
     }
 
     @Override

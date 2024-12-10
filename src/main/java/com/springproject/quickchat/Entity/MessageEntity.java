@@ -25,6 +25,10 @@ public class MessageEntity {
     @JoinColumn(name = "sender_id", nullable = false)
     private UserEntity sender;
 
+    @ManyToOne
+    @JoinColumn(name = "recipient_id", nullable = false)
+    private UserEntity recipient;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "file_id")
     private FileEntity file;
@@ -36,7 +40,7 @@ public class MessageEntity {
         }
     }
 
-    public static MessageEntity fromMessage(Message.Snapshot snapshot, DiscussionEntity discussion, UserEntity sender, FileEntity file) {
+    public static MessageEntity fromMessage(Message.Snapshot snapshot, DiscussionEntity discussion, UserEntity sender, UserEntity recipient, FileEntity file) {
         MessageEntity entity = new MessageEntity();
         entity.setId(snapshot.id());
         entity.setContent(snapshot.content());
@@ -45,6 +49,7 @@ public class MessageEntity {
         entity.setDeleted(snapshot.deleted());
         entity.setDiscussion(discussion);
         entity.setSender(sender);
+        entity.setRecipient(recipient);
         entity.setFile(file);
         return entity;
     }
@@ -54,7 +59,7 @@ public class MessageEntity {
                 this.id,
                 this.discussion.getId(),
                 this.sender.getId(),
-                null,
+                this.recipient.getId(),
                 this.content,
                 this.timestamp,
                 this.edited,
@@ -126,5 +131,13 @@ public class MessageEntity {
 
     public void setSender(UserEntity sender) {
         this.sender = sender;
+    }
+
+    public UserEntity getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(UserEntity recipient) {
+        this.recipient = recipient;
     }
 }

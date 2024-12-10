@@ -31,7 +31,8 @@ public class MessageService {
                     fileDTO.getFileName(),
                     fileDTO.getFileType(),
                     fileDTO.getFileSize(),
-                    fileDTO.getFileUrl()
+                    fileDTO.getFileUrl(),
+                    false
             );
         }
 
@@ -65,4 +66,17 @@ public class MessageService {
 
         return message;
     }
+
+    public void removeFileFromMessage(Long messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException("Message not found with id: " + messageId));
+
+        if (message.getAttachedFile() != null) {
+            message.removeFile();
+            messageRepository.save(message);
+        } else {
+            throw new IllegalArgumentException("No file attached to the message with id: " + messageId);
+        }
+    }
+
 }

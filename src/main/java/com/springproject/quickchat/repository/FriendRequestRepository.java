@@ -1,10 +1,10 @@
 package com.springproject.quickchat.repository;
 
-import com.springproject.quickchat.model.FriendRequest;
+import com.springproject.quickchat.Entity.FriendRequestEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 
-public interface FriendRequestRepository {
-    void sendFriendRequest(FriendRequest request);
-    List<FriendRequest> getFriendRequests(String id);
+@Repository
+public interface FriendRequestRepository extends JpaRepository<FriendRequestEntity, Long> {
 }

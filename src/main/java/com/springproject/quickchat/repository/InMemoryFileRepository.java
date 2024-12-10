@@ -1,4 +1,4 @@
-package com.springproject.quickchat.repository;
+/*package com.springproject.quickchat.repository;
 
 import com.springproject.quickchat.model.File;
 import org.springframework.stereotype.Repository;
@@ -36,3 +36,4 @@ public class InMemoryFileRepository implements FileRepository {
         file.markAsDeleted();
     }
 }
+*/

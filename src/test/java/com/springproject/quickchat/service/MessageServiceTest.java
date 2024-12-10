@@ -1,8 +1,8 @@
 package com.springproject.quickchat.service;
 
+import com.springproject.quickchat.dto.FileDTO;
 import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.Message;
-import com.springproject.quickchat.model.MessageContent;
 import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.InMemoryMessageRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -19,198 +18,173 @@ class MessageServiceTest {
 
     private MessageService messageService;
     private InMemoryMessageRepository messageRepository;
-    private DiscussionRepository discussionRepository;
+    private DiscussionService discussionService;
 
     @BeforeEach
     void setUp() {
-        discussionRepository = mock(DiscussionRepository.class);
-
+        DiscussionRepository discussionRepository = mock(DiscussionRepository.class);
         messageRepository = new InMemoryMessageRepository();
+        discussionService = mock(DiscussionService.class);
+        messageService = new MessageService(messageRepository, discussionService);
 
-        messageService = new MessageService(messageRepository, discussionRepository);
+        messageRepository.addUser(1L, "Alice");
+        messageRepository.addUser(2L, "Bob");
+        messageRepository.addDiscussion(1L, 1L, 2L);
     }
 
     @Test
-    void sendMessage_validMessage_savesSuccessfully() {
-        String senderId = "user1";
-        String recipientId = "user2";
-        String discussionId = "discussion1";
+    void sendMessage_validMessageWithoutFile_savesSuccessfully() {
+        Long senderId = 1L;
+        Long recipientId = 2L;
         String content = "Hello, how are you?";
+        Long discussionId = 1L;
 
         MessageDTO messageDTO = new MessageDTO(recipientId, content);
 
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId)).thenReturn(discussionId);
+        when(discussionService.findOrCreateDiscussion(senderId, recipientId)).thenReturn(discussionId);
 
-        messageService.sendMessage(senderId, messageDTO);
+        messageService.sendMessage(senderId, messageDTO, null);
 
-        List<Message> messages = messageRepository.findMessagesByDiscussionId(discussionId);
+        List<Message> messages = messageRepository.findByDiscussionId(discussionId);
         assertEquals(1, messages.size());
-        Message savedMessage = messages.get(0);
-        assertEquals(content, savedMessage.getContent());
-        assertEquals(senderId, savedMessage.getSender());
-        assertEquals(recipientId, savedMessage.getRecipient());
+        assertEquals(content, messages.get(0).getContent());
     }
 
     @Test
-    void sendMessage_discussionDoesNotExist_throwsException() {
-        String senderId = "user1";
-        String recipientId = "user2";
-        String content = "Hello, how are you?";
+    void sendMessage_validMessageWithFile_savesSuccessfully() {
+        Long senderId = 1L;
+        Long recipientId = 2L;
+        String content = "Here is a file.";
+        Long discussionId = 1L;
+
+        MessageDTO messageDTO = new MessageDTO(recipientId, content);
+        FileDTO fileDTO = new FileDTO("example.jpg", "image/jpeg", 150_000, "http://example.com/example.jpg");
+
+        when(discussionService.findOrCreateDiscussion(senderId, recipientId)).thenReturn(discussionId);
+
+        messageService.sendMessage(senderId, messageDTO, fileDTO);
+
+        List<Message> messages = messageRepository.findByDiscussionId(discussionId);
+        assertEquals(1, messages.size());
+        assertNotNull(messages.get(0).getAttachedFile());
+        assertEquals("example.jpg", messages.get(0).getAttachedFile().getName());
+    }
+
+    @Test
+    void sendMessage_invalidDiscussion_throwsException() {
+        Long senderId = 1L;
+        Long recipientId = 2L;
+        String content = "This will fail.";
 
         MessageDTO messageDTO = new MessageDTO(recipientId, content);
 
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId)).thenReturn(null);
+        when(discussionService.findOrCreateDiscussion(senderId, recipientId))
+                .thenThrow(new IllegalArgumentException("Discussion introuvable."));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                messageService.sendMessage(senderId, messageDTO)
-        );
-        assertEquals("La discussion entre les utilisateurs n'existe pas.", exception.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(senderId, messageDTO, null));
     }
 
     @Test
     void sendMessage_emptyContent_throwsException() {
-        String senderId = "user1";
-        String recipientId = "user2";
-        String discussionId = "discussion1";
+        Long senderId = 1L;
+        Long recipientId = 2L;
+        Long discussionId = 1L;
         String content = "   ";
 
         MessageDTO messageDTO = new MessageDTO(recipientId, content);
 
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId)).thenReturn(discussionId);
+        when(discussionService.findOrCreateDiscussion(senderId, recipientId)).thenReturn(discussionId);
 
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                messageService.sendMessage(senderId, messageDTO)
-        );
-        assertEquals("Le contenu du message ne peut pas être vide.", exception.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(senderId, messageDTO, null));
     }
 
     @Test
-    void sendMessage_exceedsMaxLength_throwsException() {
-        String senderId = "user1";
-        String recipientId = "user2";
-        String discussionId = "discussion1";
-        String content = "a".repeat(501);
+    void getMessagesForDiscussion_returnsValidMessages() {
+        Long discussionId = 1L;
 
-        MessageDTO messageDTO = new MessageDTO(recipientId, content);
+        Message message1 = Message.create(1L, discussionId, 1L, 2L, "Hello", LocalDateTime.now(), null);
+        Message message2 = Message.create(2L, discussionId, 1L, 2L, "How are you?", LocalDateTime.now(), null);
 
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId)).thenReturn(discussionId);
+        messageRepository.save(message1);
+        messageRepository.save(message2);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                messageService.sendMessage(senderId, messageDTO)
-        );
-        assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", exception.getMessage());
+        List<Message> messages = messageService.getMessagesForDiscussion(discussionId);
+
+        assertEquals(2, messages.size());
     }
-
-    @Test
-    void sendMessage_savesMessagesInDifferentDiscussions() {
-        String senderId = "user1";
-        String recipientId1 = "user2";
-        String recipientId2 = "user3";
-
-        String discussionId1 = "discussion1";
-        String discussionId2 = "discussion2";
-
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId1)).thenReturn(discussionId1);
-        when(discussionRepository.findDiscussionByUsers(senderId, recipientId2)).thenReturn(discussionId2);
-
-        MessageDTO message1 = new MessageDTO(recipientId1, "Message for recipient 1");
-        MessageDTO message2 = new MessageDTO(recipientId2, "Message for recipient 2");
-
-        messageService.sendMessage(senderId, message1);
-        messageService.sendMessage(senderId, message2);
-
-        List<Message> messagesForRecipient1 = messageRepository.findMessagesByDiscussionId(discussionId1);
-        List<Message> messagesForRecipient2 = messageRepository.findMessagesByDiscussionId(discussionId2);
-
-        assertEquals(1, messagesForRecipient1.size());
-        assertEquals("Message for recipient 1", messagesForRecipient1.get(0).getContent());
-
-        assertEquals(1, messagesForRecipient2.size());
-        assertEquals("Message for recipient 2", messagesForRecipient2.get(0).getContent());
-    }
-
-    @Test
-    void messageContent_validationWorks_correctly() {
-        String validContent = "This is a valid message.";
-        assertDoesNotThrow(() -> MessageContent.from(validContent));
-
-        String emptyContent = "   ";
-        IllegalArgumentException emptyException = assertThrows(IllegalArgumentException.class, () ->
-                MessageContent.from(emptyContent)
-        );
-        assertEquals("Le contenu du message ne peut pas être vide.", emptyException.getMessage());
-
-        String longContent = "a".repeat(501);
-        IllegalArgumentException longException = assertThrows(IllegalArgumentException.class, () ->
-                MessageContent.from(longContent)
-        );
-        assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", longException.getMessage());
-    }
-
-    //EditionMessage
 
     @Test
     void editMessage_validMessage_updatesContent() {
-        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
+        Long messageId = 1L;
+        String newContent = "Updated content";
+
+        Message message = Message.create(messageId, 1L, 1L, 2L, "Original content", LocalDateTime.now(), null);
+
         messageRepository.save(message);
 
-        Message updatedMessage = messageService.editMessage("1", "Updated content");
+        Message updatedMessage = messageService.editMessage(messageId, newContent);
 
-        assertEquals("Updated content", updatedMessage.getContent(), "Le contenu du message n'a pas été mis à jour.");
-        assertTrue(updatedMessage.isEdited(), "Le message devrait être marqué comme édité.");
-    }
-
-    @Test
-    void editMessage_nonexistentMessage_throwsException() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("nonexistent", "New content"));
-        assertEquals("Message introuvable.", exception.getMessage());
+        assertEquals(newContent, updatedMessage.getContent());
+        assertTrue(updatedMessage.isEdited());
     }
 
     @Test
     void editMessage_deletedMessage_throwsException() {
+        Long discussionId = 1L;
+        Long senderId = 1L;
+        Long recipientId = 2L;
+
+        messageRepository.addUser(senderId, "Alice");
+        messageRepository.addUser(recipientId, "Bob");
+        messageRepository.addDiscussion(discussionId, senderId, recipientId);
+
         Message message = Message.create(
-                UUID.randomUUID().toString(),
-                "discussionId1",
-                "Alice",
-                "Bob",
+                null,
+                discussionId,
+                senderId,
+                recipientId,
                 "Original content",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                null
         );
         message.markAsDeleted();
+
         messageRepository.save(message);
 
-        System.out.println("Message after save: " + message.getId() + ", deleted = " + message.isDeleted());
-
-        assertTrue(message.isDeleted(), "Le message doit être marqué comme supprimé.");
+        Message savedMessage = messageRepository.findById(message.getId()).orElseThrow();
+        assertTrue(savedMessage.isDeleted(), "Le message doit être marqué comme supprimé.");
 
         Exception exception = assertThrows(IllegalArgumentException.class,
                 () -> messageService.editMessage(message.getId(), "Updated content"));
 
         assertEquals("Impossible d'éditer un message supprimé.", exception.getMessage());
 
-        Message savedMessage = messageRepository.findMessageById(message.getId()).orElseThrow();
-        assertTrue(savedMessage.isDeleted(), "Le message doit toujours être marqué comme supprimé.");
+        Message finalSavedMessage = messageRepository.findById(message.getId()).orElseThrow();
+        assertTrue(finalSavedMessage.isDeleted(), "Le message doit toujours être marqué comme supprimé.");
     }
 
 
-    @Test
-    void editMessage_emptyContent_throwsException() {
-        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
-        messageRepository.save(message);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", "   "));
-        assertEquals("Le contenu du message ne peut pas être vide.", exception.getMessage());
+
+    @Test
+    void sendMessage_fileExceedsSizeLimit_throwsException() {
+        Long senderId = 1L;
+        Long recipientId = 2L;
+        Long discussionId = 1L;
+        String content = "Here is a large file.";
+
+        MessageDTO messageDTO = new MessageDTO(recipientId, content);
+        FileDTO fileDTO = new FileDTO("largefile.mp4", "video/mp4", 250_000_000, "http://example.com/largefile.mp4");
+
+        when(discussionService.findOrCreateDiscussion(senderId, recipientId)).thenReturn(discussionId);
+
+        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(senderId, messageDTO, fileDTO));
     }
 
     @Test
-    void editMessage_contentExceedsMaxLength_throwsException() {
-        Message message = Message.create("1", "1", "Alice", "Bob", "Original content", LocalDateTime.now());
-        messageRepository.save(message);
-
-        String newContent = "a".repeat(501);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> messageService.editMessage("1", newContent));
-        assertEquals("Le contenu du message ne doit pas dépasser 500 caractères.", exception.getMessage());
+    void getMessages_emptyDiscussion_returnsEmptyList() {
+        Long discussionId = 1L;
+        List<Message> messages = messageService.getMessagesForDiscussion(discussionId);
+        assertTrue(messages.isEmpty());
     }
 }

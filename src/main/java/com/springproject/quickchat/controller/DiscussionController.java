@@ -1,4 +1,4 @@
-package com.springproject.quickchat.controller;
+/*package com.springproject.quickchat.controller;
 
 import com.springproject.quickchat.model.Discussion;
 import com.springproject.quickchat.service.DiscussionService;
@@ -24,3 +24,4 @@ public class DiscussionController {
         return discussionService.getDiscussionsForUser(userId);
     }
 }
+*/

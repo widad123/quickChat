@@ -1,21 +1,21 @@
 package com.springproject.quickchat.repository;
 
-import com.springproject.quickchat.model.Discussion;
+
+
+import com.springproject.quickchat.Entity.DiscussionEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
+
 
 @Repository
-public interface DiscussionRepository {
+public interface DiscussionRepository extends JpaRepository<DiscussionEntity, Long> {
 
-    void save(Discussion discussion);
+    @Query("SELECT d FROM DiscussionEntity d WHERE (d.participant1.id = :user1Id AND d.participant2.id = :user2Id) " +
+            "OR (d.participant1.id = :user2Id AND d.participant2.id = :user1Id)")
+    Optional<DiscussionEntity> findDiscussionByUsers(Long user1Id, Long user2Id);
 
-    List<Discussion> findAllByUserId(String userId);
-
-    Discussion findById(String discussionId);
-
-    @Query("SELECT d.id FROM DiscussionEntity d WHERE (d.user1 = :user1 AND d.user2 = :user2) OR (d.user1 = :user2 AND d.user2 = :user1)")
-    String findDiscussionByUsers(@Param("user1") String user1, @Param("user2") String user2);
 }

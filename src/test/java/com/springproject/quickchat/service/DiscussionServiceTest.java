@@ -1,53 +1,103 @@
 package com.springproject.quickchat.service;
 
+import com.springproject.quickchat.Entity.DiscussionEntity;
+import com.springproject.quickchat.Entity.UserEntity;
+import com.springproject.quickchat.dto.DiscussionDTO;
 import com.springproject.quickchat.model.Discussion;
-import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.InMemoryDiscussionRepository;
+import com.springproject.quickchat.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class DiscussionServiceTest {
+class DiscussionServiceTest {
+
+    private InMemoryDiscussionRepository discussionRepository;
+    private UserRepository userRepository;
     private DiscussionService discussionService;
-    private DiscussionRepository discussionRepository;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         discussionRepository = new InMemoryDiscussionRepository();
-        discussionService = new DiscussionService(discussionRepository);
+        userRepository = mock(UserRepository.class);
+        discussionService = new DiscussionService(discussionRepository, userRepository);
     }
 
     @Test
-    void createDiscussion() {
-        discussionService.createDiscussion("Alice", "Bob");
+    void testFindOrCreateDiscussion_whenDiscussionExists() {
+        UserEntity user1 = new UserEntity();
+        user1.setId(1L);
+        UserEntity user2 = new UserEntity();
+        user2.setId(2L);
 
-        List<Discussion> discussions = discussionRepository.findAllByUserId("Alice");
+        DiscussionEntity discussion = new DiscussionEntity();
+        discussion.setId(1L);
+        discussion.setParticipant1(user1);
+        discussion.setParticipant2(user2);
 
-        assertEquals(1, discussions.size(), "Le nombre de discussions est incorrect.");
-        Discussion discussion = discussions.get(0);
-        assertEquals("Alice", discussion.getUser1(), "L'utilisateur 1 est incorrect.");
-        assertEquals("Bob", discussion.getUser2(), "L'utilisateur 2 est incorrect.");
+        discussionRepository.save(discussion);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
+
+        Long discussionId = discussionService.findOrCreateDiscussion(1L, 2L);
+
+        assertEquals(1L, discussionId);
     }
 
     @Test
-    void getDiscussionsForUser() {
-        discussionService.createDiscussion("Alice", "Bob");
-        discussionService.createDiscussion("Alice", "Charlie");
-        discussionService.createDiscussion("Bob", "Charlie");
+    void testFindOrCreateDiscussion_whenDiscussionDoesNotExist() {
+        UserEntity user1 = new UserEntity();
+        user1.setId(1L);
+        UserEntity user2 = new UserEntity();
+        user2.setId(2L);
 
-        List<Discussion> aliceDiscussions = discussionRepository.findAllByUserId("Alice");
-        List<Discussion> bobDiscussions = discussionRepository.findAllByUserId("Bob");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
 
-        assertEquals(2, aliceDiscussions.size(), "Le nombre de discussions pour Alice est incorrect.");
-        assertEquals(2, bobDiscussions.size(), "Le nombre de discussions pour Bob est incorrect.");
+        Long discussionId = discussionService.findOrCreateDiscussion(1L, 2L);
 
-        assertTrue(aliceDiscussions.stream().anyMatch(d -> d.getUser2().equals("Bob")));
-        assertTrue(aliceDiscussions.stream().anyMatch(d -> d.getUser2().equals("Charlie")));
+        assertNotNull(discussionId);
+        Optional<DiscussionEntity> discussionEntity = discussionRepository.findById(discussionId);
+        assertTrue(discussionEntity.isPresent());
+        assertEquals(user1.getId(), discussionEntity.get().getParticipant1().getId());
+        assertEquals(user2.getId(), discussionEntity.get().getParticipant2().getId());
+    }
 
-        assertTrue(bobDiscussions.stream().anyMatch(d -> d.getUser2().equals("Charlie")));
-        assertTrue(bobDiscussions.stream().anyMatch(d -> d.getUser1().equals("Alice")));
+    @Test
+    void testFindOrCreateDiscussion_whenUserNotFound_throwsException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> discussionService.findOrCreateDiscussion(1L, 2L));
+        assertEquals("Sender not found: 1", exception.getMessage());
+    }
+
+    @Test
+    void testCreateDiscussion() {
+        UserEntity user1 = new UserEntity();
+        user1.setId(1L);
+        UserEntity user2 = new UserEntity();
+        user2.setId(2L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
+
+        DiscussionDTO dto = new DiscussionDTO(1L, 2L);
+        Discussion discussion = discussionService.createDiscussion(dto);
+
+        assertNotNull(discussion);
+        assertEquals(1L, discussion.getUser1Id());
+        assertEquals(2L, discussion.getUser2Id());
+
+        Optional<DiscussionEntity> savedEntity = discussionRepository.findDiscussionByUsers(1L, 2L);
+        assertTrue(savedEntity.isPresent());
+        assertEquals(user1.getId(), savedEntity.get().getParticipant1().getId());
+        assertEquals(user2.getId(), savedEntity.get().getParticipant2().getId());
     }
 }

@@ -1,40 +1,47 @@
 package com.springproject.quickchat.Entity;
 
+import com.springproject.quickchat.model.File;
+import com.springproject.quickchat.utils.UuidToLongGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
 @Entity
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "_File")
+@Builder
 public class FileEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
-    private String discussionId;
-    private String sender;
-    private String filename;
-    private String url;
-    private String timestamp;
-    private boolean deleted;
+    private Long id;
 
-    public FileEntity(String id, String discussionId, String sender, String filename, String url, String timestamp) {
-        this.id = id;
-        this.discussionId = discussionId;
-        this.sender = sender;
-        this.filename = filename;
-        this.url = url;
-        this.timestamp = timestamp;
-        this.deleted = false;
-    }
-    public boolean isDeleted() {
-        return deleted;
+    private String fileName;
+    private String fileType;
+    private long fileSize;
+    private String fileUrl;
+
+    @PrePersist
+    public void prePersist() {
+        if (id == null) {
+            id = new UuidToLongGenerator().generateId();
+        }
     }
 
-    public void markAsDeleted() {
-        this.deleted = true;
+    public static FileEntity fromFile(File.Snapshot snapshot) {
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.id = snapshot.id();
+        fileEntity.fileName = snapshot.name();
+        fileEntity.fileType = snapshot.type();
+        fileEntity.fileUrl = snapshot.url();
+        return fileEntity;
+    }
+
+    public File.Snapshot toSnapshot() {
+        return new File.Snapshot(
+                this.id,
+                this.fileName,
+                this.fileType,
+                this.fileSize,
+                this.fileUrl
+        );
     }
 }

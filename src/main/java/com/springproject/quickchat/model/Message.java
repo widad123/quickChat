@@ -1,24 +1,36 @@
 package com.springproject.quickchat.model;
 
+import com.springproject.quickchat.utils.UuidToLongGenerator;
+import jakarta.persistence.PrePersist;
+
 import java.time.LocalDateTime;
 
 public class Message {
-    private final String id;
-    private final String discussionId;
-    private final String sender;
-    private final String recipient;
+    private Long id;
+    private final Long discussionId;
+    private final Long sender;
+    private final Long recipient;
     private MessageContent content;
     private final LocalDateTime timestamp;
     private boolean edited;
     private boolean deleted;
+    private File attachedFile;
 
-    private Message(String id, String discussionId, String sender, String recipient, MessageContent content, LocalDateTime timestamp) {
+    @PrePersist
+    public void prePersist() {
+        if (id == null) {
+            id = new UuidToLongGenerator().generateId();
+        }
+    }
+
+    private Message(Long id, Long discussionId, Long sender, Long recipient, MessageContent content, LocalDateTime timestamp, File attachedFile) {
         this.id = id;
         this.discussionId = discussionId;
         this.sender = sender;
         this.recipient = recipient;
         this.content = content;
         this.timestamp = timestamp;
+        this.attachedFile = attachedFile;
         this.edited = false;
         this.deleted = false;
     }
@@ -43,19 +55,19 @@ public class Message {
         return edited;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public String getDiscussionId() {
+    public Long getDiscussionId() {
         return discussionId;
     }
 
-    public String getSender() {
+    public Long getSender() {
         return sender;
     }
 
-    public String getRecipient() {
+    public Long getRecipient() {
         return recipient;
     }
 
@@ -67,29 +79,44 @@ public class Message {
         return timestamp;
     }
 
-    public record Snapshot(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted) {
+    public File getAttachedFile() {
+        return attachedFile;
     }
 
+    public record Snapshot(Long id, Long discussionId, Long sender, Long recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted, File.Snapshot attachedFile) {}
+
     public Snapshot snapshot() {
-        return new Snapshot(id, discussionId, sender, recipient, content.getValue(), timestamp, edited, deleted);
+        return new Snapshot(
+                id,
+                discussionId,
+                sender,
+                recipient,
+                content.getValue(),
+                timestamp,
+                edited,
+                deleted,
+                attachedFile != null ? attachedFile.snapshot() : null
+        );
     }
 
     public static Message fromSnapshot(Snapshot snapshot) {
+        File attachedFile = snapshot.attachedFile() != null ? File.fromSnapshot(snapshot.attachedFile()) : null;
         Message message = new Message(
                 snapshot.id(),
                 snapshot.discussionId(),
                 snapshot.sender(),
                 snapshot.recipient(),
                 MessageContent.from(snapshot.content()),
-                snapshot.timestamp()
+                snapshot.timestamp(),
+                attachedFile
         );
         message.edited = snapshot.edited();
         message.deleted = snapshot.deleted();
         return message;
     }
 
-    public static Message create(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp) {
-        return new Message(id, discussionId, sender, recipient, MessageContent.from(content), timestamp);
+    public static Message create(Long id, Long discussionId, Long sender, Long recipient, String content, LocalDateTime timestamp, File attachedFile) {
+        return new Message(id, discussionId, sender, recipient, MessageContent.from(content), timestamp, attachedFile);
     }
 
     public void setEdited(boolean edited) {

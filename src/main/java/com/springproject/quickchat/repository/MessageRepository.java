@@ -1,8 +1,10 @@
 package com.springproject.quickchat.repository;
 
+import com.springproject.quickchat.Entity.DiscussionEntity;
+import com.springproject.quickchat.Entity.FileEntity;
 import com.springproject.quickchat.Entity.MessageEntity;
+import com.springproject.quickchat.Entity.UserEntity;
 import com.springproject.quickchat.model.Message;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,24 +13,43 @@ import java.util.stream.Collectors;
 
 
 @Repository
-public interface MessageRepository extends JpaRepository<MessageEntity, String> {
+public class MessageRepository implements MessageRepositoryInterface {
+    private final JpaMessageRepository jpaMessageRepository;
+    private final DiscussionRepository discussionRepository;
+    private final UserRepository userRepository;
 
-    public default Optional<Message> findMessageById(String messageId) {
-        return findById(messageId)
-                .map(entity -> Message.fromSnapshot(entity.toSnapshot()));
+    public MessageRepository(JpaMessageRepository jpaMessageRepository, DiscussionRepository discussionRepository, UserRepository userRepository) {
+        this.jpaMessageRepository = jpaMessageRepository;
+        this.discussionRepository = discussionRepository;
+        this.userRepository = userRepository;
     }
 
-    List<MessageEntity> findAllByDiscussionId(String discussionId);
+    @Override
+    public void save(Message message) {
+        DiscussionEntity discussionEntity = discussionRepository.findById(message.getDiscussionId())
+                .orElseThrow(() -> new IllegalArgumentException("Discussion introuvable."));
+        UserEntity senderEntity = userRepository.findById(message.getSender())
+                .orElseThrow(() -> new IllegalArgumentException("Émetteur introuvable."));
+        FileEntity fileEntity = message.getAttachedFile() != null
+                ? FileEntity.fromFile(message.getAttachedFile().snapshot())
+                : null;
 
-    default void save(Message message) {
-
-        MessageEntity entity = MessageEntity.fromMessage(message.snapshot());
-        save(entity);
+        MessageEntity messageEntity = MessageEntity.fromMessage(message.snapshot(), discussionEntity, senderEntity, fileEntity);
+        jpaMessageRepository.save(messageEntity);
     }
-    default List<Message> findMessagesByDiscussionId(String discussionId) {
-        return findAllByDiscussionId(discussionId).stream()
-                .map(entity -> Message.fromSnapshot(entity.toSnapshot()))
+
+    @Override
+    public Optional<Message> findById(Long messageId) {
+        return jpaMessageRepository.findById(messageId)
+                .map(MessageEntity::toSnapshot)
+                .map(Message::fromSnapshot);
+    }
+
+    @Override
+    public List<Message> findByDiscussionId(Long discussionId) {
+        return jpaMessageRepository.findAllByDiscussion_Id(discussionId).stream()
+                .map(MessageEntity::toSnapshot)
+                .map(Message::fromSnapshot)
                 .collect(Collectors.toList());
     }
-    Optional<MessageEntity> findById(String messageId);
 }

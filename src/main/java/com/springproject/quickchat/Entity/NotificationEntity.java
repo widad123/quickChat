@@ -8,29 +8,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "_FriendRequest")
-public class FriendRequestEntity {
+@Builder
+public class NotificationEntity {
     @Id
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id", nullable = false) // Foreign key avec un nom explicite
-    private UserEntity sender;
+    @JoinColumn(name = "recipient_id", nullable = false) // Foreign key avec un nom explicite
+    private UserEntity recipient;
 
-    @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false) // Foreign key avec un nom explicite
-    private UserEntity receiver;
+    private String message; // e.g., "You received a friend request from X."
 
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status;
-
-    public enum RequestStatus {
-        PENDING, ACCEPTED, DECLINED
-    }
+    private boolean seen;
 
     @PrePersist
     public void prePersist() {
@@ -38,6 +30,4 @@ public class FriendRequestEntity {
             id = new UuidToLongGenerator().generateId();
         }
     }
-
 }
-

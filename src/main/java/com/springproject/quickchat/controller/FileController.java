@@ -1,4 +1,4 @@
-package com.springproject.quickchat.controller;
+/*package com.springproject.quickchat.controller;
 
 import com.springproject.quickchat.model.File;
 import com.springproject.quickchat.service.FileService;
@@ -40,3 +40,4 @@ public class FileController {
         fileService.deleteFile(fileId);
     }
 }
+*/

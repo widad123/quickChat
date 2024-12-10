@@ -1,5 +1,6 @@
 package com.springproject.quickchat.controller;
 
+import com.springproject.quickchat.dto.FileDTO;
 import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.service.MessageService;
@@ -15,13 +16,18 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/send")
-    public void sendMessage(@RequestParam String senderId,@RequestBody MessageDTO message) {
-         messageService.sendMessage(senderId, message);
+    public void sendMessage(
+            @RequestParam Long senderId,
+            @RequestBody MessageDTO message,
+            @RequestParam(required = false) FileDTO file
+    ) {
+        messageService.sendMessage(senderId, message, file);
     }
+
 
     @PutMapping("/edit")
     public Message editMessage(
-            @RequestParam String messageId,
+            @RequestParam Long messageId,
             @RequestParam String newContent
     ) {
         return messageService.editMessage(messageId, newContent);

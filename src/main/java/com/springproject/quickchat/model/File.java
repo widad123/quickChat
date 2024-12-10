@@ -1,53 +1,77 @@
 package com.springproject.quickchat.model;
 
-public class File {
-    private String id;
-    private String discussionId;
-    private String sender;
-    private String filename;
-    private String url;
-    private String timestamp;
-    private boolean deleted;
+import com.springproject.quickchat.utils.UuidToLongGenerator;
+import jakarta.persistence.PrePersist;
 
-    public File(String id, String discussionId, String sender, String filename, String url, String timestamp) {
-        this.id = id;
-        this.discussionId = discussionId;
-        this.sender = sender;
-        this.filename = filename;
-        this.url = url;
-        this.timestamp = timestamp;
-        this.deleted = false;
+import java.util.List;
+
+public class File {
+    private Long id;
+    private final String name;
+    private final String type;
+    private final long size; // en octets
+    private final String url;
+
+    @PrePersist
+    public void prePersist() {
+        if (id == null) {
+            id = new UuidToLongGenerator().generateId();
+        }
     }
 
-    public String getId() {
+    private File(Long id, String name, String type, long size, String url) {
+        validateFile(type, size);
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.size = size;
+        this.url = url;
+    }
+
+    private void validateFile(String type, long size) {
+        List<String> allowedTypes = List.of("image/png", "image/jpeg", "video/mp4");
+        long maxFileSize = 200 * 1024 * 1024; // 200 MB
+
+        if (!allowedTypes.contains(type)) {
+            throw new IllegalArgumentException("Type de fichier non pris en charge : " + type);
+        }
+
+        if (size > maxFileSize) {
+            throw new IllegalArgumentException("Le fichier dépasse la taille maximale autorisée de 200 Mo.");
+        }
+    }
+
+    public static File create(Long id, String name, String type, long size, String url) {
+        return new File(id, name, type, size, url);
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public String getDiscussionId() {
-        return discussionId;
+    public String getName() {
+        return name;
     }
 
-    public String getSender() {
-        return sender;
+    public String getType() {
+        return type;
     }
 
-    public String getFilename() {
-        return filename;
+    public long getSize() {
+        return size;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public String getTimestamp() {
-        return timestamp;
+    public record Snapshot(Long id, String name, String type, long size, String url) {}
+
+    public Snapshot snapshot() {
+        return new Snapshot(id, name, type, size, url);
     }
 
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void markAsDeleted() {
-        this.deleted = true;
+    public static File fromSnapshot(Snapshot snapshot) {
+        return new File(snapshot.id(), snapshot.name(), snapshot.type(), snapshot.size(), snapshot.url());
     }
 }

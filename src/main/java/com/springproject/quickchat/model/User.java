@@ -1,17 +1,17 @@
 package com.springproject.quickchat.model;
 
 public class User {
-    private String id;
+    private Long id;
     private String username;
     private String email;
 
-    public User(String id, String username, String email) {
+    public User(Long id, String username, String email) {
         this.id = id;
         this.username = username;
         this.email = email;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 

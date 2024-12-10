@@ -1,4 +1,4 @@
-package com.springproject.quickchat.service;
+/*package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.model.File;
 import com.springproject.quickchat.repository.DiscussionRepository;
@@ -54,3 +54,4 @@ public class FileService {
         return filename.substring(lastIndex + 1);
     }
 }
+*/

@@ -3,7 +3,7 @@ package com.springproject.quickchat.model;
 import java.time.LocalDateTime;
 
 public class Message {
-    private final String id;
+    private final Long id;
     private final String discussionId;
     private final String sender;
     private final String recipient;
@@ -12,7 +12,7 @@ public class Message {
     private boolean edited;
     private boolean deleted;
 
-    private Message(String id, String discussionId, String sender, String recipient, MessageContent content, LocalDateTime timestamp) {
+    private Message(Long id, String discussionId, String sender, String recipient, MessageContent content, LocalDateTime timestamp) {
         this.id = id;
         this.discussionId = discussionId;
         this.sender = sender;
@@ -40,7 +40,7 @@ public class Message {
         return edited;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
@@ -64,7 +64,7 @@ public class Message {
         return timestamp;
     }
 
-    public record Snapshot(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted) {
+    public record Snapshot(Long id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp, boolean edited, boolean deleted) {
     }
 
     public Snapshot snapshot() {
@@ -76,7 +76,7 @@ public class Message {
                 MessageContent.from(snapshot.content()), snapshot.timestamp());
     }
 
-    public static Message create(String id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp) {
+    public static Message create(Long id, String discussionId, String sender, String recipient, String content, LocalDateTime timestamp) {
         return new Message(id, discussionId, sender, recipient, MessageContent.from(content), timestamp);
     }
 }

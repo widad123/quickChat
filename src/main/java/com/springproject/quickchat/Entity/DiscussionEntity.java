@@ -13,7 +13,7 @@ import lombok.*;
 public class DiscussionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
     private String user1;
     private String user2;
 

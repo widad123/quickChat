@@ -1,57 +1,67 @@
 package com.springproject.quickchat.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "_FriendRequest")
+@Table(name = "friend_requests")
 public class FriendRequestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String from;
-    private String to;
-    private boolean accepted;
-    private boolean declined;
 
+    @Column(name = "sender_id", nullable = false)
+    private Long senderId;
+
+    @Column(name = "receiver_id", nullable = false)
+    private Long receiverId;
+
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
 
-    public String getFrom() {
-        return from;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getTo() {
-        return to;
+    public Long getSenderId() {
+        return senderId;
     }
 
-    public FriendRequestEntity(String from, String to) {
-        this.from = from;
-        this.to = to;
-        this.accepted = false;
-        this.declined = false;
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
     }
 
-    public boolean isAccepted() {
-        return accepted;
+    public Long getReceiverId() {
+        return receiverId;
     }
 
-    public boolean isDeclined() {
-        return declined;
+    public void setReceiverId(Long receiverId) {
+        this.receiverId = receiverId;
     }
 
-    public void accept() {
-        this.accepted = true;
+    public String getStatus() {
+        return status;
     }
 
-    public void decline() {
-        this.declined = true;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
+
 

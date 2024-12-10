@@ -1,40 +1,32 @@
 package com.springproject.quickchat.model;
 
 public class FriendRequest {
-    private String from;
-    private String to;
-    private boolean accepted;
-    private boolean declined;
+    private Long senderId;
+    private Long receiverId;
+    private String status;
 
-    public FriendRequest(String from, String to) {
-        this.from = from;
-        this.to = to;
-        this.accepted = false;
-        this.declined = false;
+    // Getters and Setters
+    public Long getSenderId() {
+        return senderId;
     }
 
-    public String getFrom() {
-        return from;
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
     }
 
-    public String getTo() {
-        return to;
+    public Long getReceiverId() {
+        return receiverId;
     }
 
-    public boolean isAccepted() {
-        return accepted;
+    public void setReceiverId(Long receiverId) {
+        this.receiverId = receiverId;
     }
 
-    public boolean isDeclined() {
-        return declined;
+    public String getStatus() {
+        return status;
     }
 
-    public void accept() {
-        this.accepted = true;
-    }
-
-    public void decline() {
-        this.declined = true;
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
-

@@ -1,39 +1,36 @@
 package com.springproject.quickchat.service;
 
+import com.springproject.quickchat.Entity.FriendRequestEntity;
 import com.springproject.quickchat.model.FriendRequest;
 import com.springproject.quickchat.repository.InMemoryFriendRequestRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FriendRequestServiceTest {
-    FriendRequestService friendRequestService;
-    InMemoryFriendRequestRepository repository = new InMemoryFriendRequestRepository();
 
-    @BeforeEach
-    void setUp() {
-        friendRequestService = new FriendRequestService(repository);
-    }
     @Test
-    void sendFriendRequest() {
-        FriendRequest friendRequest = new FriendRequest("Ayyoub","Asmae");
-        friendRequestService.sendFriendRequest(friendRequest);
-        assertTrue(this.repository.friendRequests.contains(friendRequest),"La demande n'a pas été envoyé");
-    }
-    @Test
-    void getFriendRequests() {
-        FriendRequest friendRequest1 = new FriendRequest("Ayyoub","Asmae");
-        FriendRequest friendRequest2 = new FriendRequest("Widad","Ayyoub");
-        friendRequestService.sendFriendRequest(friendRequest1);
-        friendRequestService.sendFriendRequest(friendRequest2);
-        List<FriendRequest> resultFriendRequest = new ArrayList<>();
-        resultFriendRequest.add(friendRequest1);
-        assertEquals(this.repository.getFriendRequests("Asmae"), resultFriendRequest, "La demande n'a pas été envoyé");
-    }
+    void testSendAndRetrieveFriendRequests() {
+        InMemoryFriendRequestRepository inMemoryRepository = new InMemoryFriendRequestRepository();
+        FriendRequestService service = new FriendRequestService(inMemoryRepository);
 
+        FriendRequest request1 = new FriendRequest();
+        request1.setSenderId(1L);
+        request1.setReceiverId(2L);
+
+        FriendRequest request2 = new FriendRequest();
+        request2.setSenderId(3L);
+        request2.setReceiverId(4L);
+
+        service.sendFriendRequest(request1);
+        service.sendFriendRequest(request2);
+        List<FriendRequestEntity> allRequests = service.getAllFriendRequests();
+
+        assertEquals(2, allRequests.size());
+        assertEquals(1L, allRequests.get(0).getSenderId());
+        assertEquals(3L, allRequests.get(1).getSenderId());
+    }
 }

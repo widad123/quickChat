@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +32,7 @@ class MessageServiceTest {
         messageRepository.addUser(1L, "Alice");
         messageRepository.addUser(2L, "Bob");
         messageRepository.addDiscussion(1L, 1L, 2L);
+
     }
 
     @Test
@@ -39,6 +41,15 @@ class MessageServiceTest {
         Long recipientId = 2L;
         String content = "Hello, how are you?";
         Long discussionId = 1L;
+        List<Message> savedMessages = new ArrayList<>();
+        doAnswer(invocation -> {
+            Message message = invocation.getArgument(0);
+            savedMessages.add(message);
+            return message;
+        }).when(messageRepository).save(any(Message.class));
+
+        when(messageRepository.findByDiscussionId(discussionId)).thenReturn(savedMessages);
+
 
         MessageDTO messageDTO = new MessageDTO(recipientId, content);
 

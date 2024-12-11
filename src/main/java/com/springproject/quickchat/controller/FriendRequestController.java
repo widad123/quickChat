@@ -19,8 +19,8 @@ public class FriendRequestController {
     }
 
     @PostMapping("/send")
-    public ResponseEntity<String> sendFriendRequest(@RequestBody FriendRequestDTO requestDTO) {
-        friendRequestService.sendFriendRequest(requestDTO);
+    public ResponseEntity<String> sendFriendRequest(@RequestParam String recipient) {
+        friendRequestService.sendFriendRequest(recipient);
         return ResponseEntity.ok("Friend request sent successfully.");
     }
 
@@ -37,24 +37,22 @@ public class FriendRequestController {
     }
 
     @GetMapping("/received")
-    public ResponseEntity<List<FriendRequestDTO>> listReceivedFriendRequests(@RequestParam Long receiverId) {
-        List<FriendRequestDTO> requests = friendRequestService.listReceivedFriendRequests(receiverId);
+    public ResponseEntity<List<FriendRequestDTO>> listReceivedFriendRequests() {
+        List<FriendRequestDTO> requests = friendRequestService.listReceivedFriendRequests();
         return ResponseEntity.ok(requests);
     }
 
     @DeleteMapping("/cancel")
     public ResponseEntity<String> cancelFriendRequest(
-            @RequestParam Long senderId,
             @RequestParam Long receiverId) {
-        friendRequestService.cancelFriendRequest(senderId, receiverId);
+        friendRequestService.cancelFriendRequest(receiverId);
         return ResponseEntity.ok("Friend request canceled successfully.");
     }
 
     @DeleteMapping("/decline")
     public ResponseEntity<String> declineFriendRequest(
-            @RequestParam Long receiverId,
             @RequestParam Long senderId) {
-        friendRequestService.declineFriendRequest(receiverId, senderId);
+        friendRequestService.declineFriendRequest(senderId);
         return ResponseEntity.ok("Friend request declined successfully.");
     }
 

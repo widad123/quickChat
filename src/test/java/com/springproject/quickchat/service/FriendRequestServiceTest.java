@@ -3,8 +3,7 @@ package com.springproject.quickchat.service;
 import com.springproject.quickchat.Entity.UserEntity;
 import com.springproject.quickchat.dto.FriendRequestDTO;
 import com.springproject.quickchat.model.FriendRequest;
-import com.springproject.quickchat.repository.InMemoryFriendRequestRepository;
-import com.springproject.quickchat.repository.InMemoryUserRepository;
+import com.springproject.quickchat.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,12 +16,19 @@ class FriendRequestServiceTest {
     private FriendRequestService friendRequestService;
     private InMemoryFriendRequestRepository friendRequestRepository;
     private InMemoryUserRepository userRepository;
+    private NotificationService notificationService;
+    private SseEmitterRepository sseEmitterRepository;
+    private DiscussionRepository discussionRepository;
+
 
     @BeforeEach
     void setUp() {
         friendRequestRepository = new InMemoryFriendRequestRepository();
         userRepository = new InMemoryUserRepository();
-        friendRequestService = new FriendRequestService(friendRequestRepository, userRepository);
+        sseEmitterRepository = new SseEmitterRepository();
+        discussionRepository = new InMemoryDiscussionRepository();
+        notificationService = new NotificationService(sseEmitterRepository, discussionRepository);
+        friendRequestService = new FriendRequestService(friendRequestRepository, userRepository, notificationService);
 
         // Adding test users
         userRepository.save(new UserEntity(null, "user1", "password1", "user1@example.com"));

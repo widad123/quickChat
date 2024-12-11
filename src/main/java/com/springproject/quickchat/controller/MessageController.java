@@ -16,10 +16,11 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/send")
-    public void sendMessage(
+    public ResponseEntity<String> sendMessage(
             @RequestBody MessageRequest messageRequest
     ) {
-        messageService.sendMessage(messageRequest.getSenderId(), messageRequest.getMessage(), messageRequest.getFile());
+        messageService.sendMessage(messageRequest.getMessage(), messageRequest.getFile());
+        return ResponseEntity.ok("Message envoyé avec succès.");
     }
 
 
@@ -31,10 +32,27 @@ public class MessageController {
         return messageService.editMessage(messageId, newContent);
     }
 
-    @DeleteMapping("/{messageId}")
+    @DeleteMapping("/deleteFile/{messageId}")
     public ResponseEntity<String> deleteFileFromMessage(@PathVariable Long messageId) {
         messageService.removeFileFromMessage(messageId);
         return ResponseEntity.ok("File removed from message successfully");
+    }
+
+
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<String> deleteMessage(
+            @PathVariable Long messageId
+    ) {
+        try {
+            messageService.deleteMessage(messageId);
+            return ResponseEntity.ok("Message deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("An unexpected error occurred.");
+        }
     }
 
 

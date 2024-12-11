@@ -5,6 +5,8 @@ import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.File;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.repository.MessageRepositoryInterface;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,13 +17,32 @@ import java.util.stream.Collectors;
 public class MessageService {
     private final MessageRepositoryInterface messageRepository;
     private final DiscussionService discussionService;
+    private final NotificationService notificationService;
 
-    public MessageService(MessageRepositoryInterface messageRepository, DiscussionService discussionService) {
+
+    public MessageService(MessageRepositoryInterface messageRepository,
+                          DiscussionService discussionService,
+                          NotificationService notificationService) {
         this.messageRepository = messageRepository;
         this.discussionService = discussionService;
+        this.notificationService = notificationService;
     }
 
-    public void sendMessage(Long senderId, MessageDTO messageDTO, FileDTO fileDTO) {
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof String) {
+            try {
+                return Long.valueOf(authentication.getPrincipal().toString());
+            } catch (NumberFormatException e) {
+                throw new IllegalStateException("Le principal n'est pas un ID utilisateur valide : " + authentication.getPrincipal());
+            }
+        }
+        throw new IllegalStateException("Utilisateur non authentifié ou principal invalide.");
+    }
+
+
+    public void sendMessage(MessageDTO messageDTO, FileDTO fileDTO) {
+        Long senderId = getCurrentUserId();
         Long discussionId = discussionService.findOrCreateDiscussion(senderId, messageDTO.idRecipient());
 
         File attachedFile = null;
@@ -47,6 +68,20 @@ public class MessageService {
         );
 
         messageRepository.save(message);
+
+        if (attachedFile != null) {
+            notificationService.sendNotificationToDiscussion(
+                    discussionId,
+                    "new-file-received",
+                    "Un nouveau fichier a été envoyé dans la discussion."
+            );
+        }else {
+            notificationService.sendNotification(
+                    messageDTO.idRecipient(),
+                    "new-message-received",
+                    "Vous avez reçu un nouveau message dans une discussion."
+            );
+        }
     }
 
     public List<Message> getMessagesForDiscussion(Long discussionId) {
@@ -64,6 +99,12 @@ public class MessageService {
 
         messageRepository.save(message);
 
+        notificationService.sendNotificationToDiscussion(
+                message.getDiscussionId(),
+                "message-edited",
+                "Le message ID " + messageId + " a été modifié."
+        );
+
         return message;
     }
 
@@ -71,12 +112,38 @@ public class MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found with id: " + messageId));
 
-        if (message.getAttachedFile() != null) {
-            message.removeFile();
-            messageRepository.save(message);
-        } else {
-            throw new IllegalArgumentException("No file attached to the message with id: " + messageId);
+        if (message.getAttachedFile() == null) {
+            throw new IllegalStateException("No file attached to the message with id: " + messageId);
         }
+
+        message.removeFile();
+        messageRepository.save(message);
+
+        notificationService.sendNotificationToDiscussion(
+                message.getDiscussionId(),
+                "file-removed",
+                "Un fichier a été supprimé du message dans la discussion."
+        );
+    }
+
+
+    public void deleteMessage(Long messageId) {
+        Long userId = getCurrentUserId();
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException("Message introuvable : " + messageId));
+
+        if (!message.getSender().equals(userId)) {
+            throw new SecurityException("Vous n'êtes pas autorisé à supprimer ce message.");
+        }
+
+        message.setDeleted(true);
+        messageRepository.save(message);
+
+        notificationService.sendNotificationToDiscussion(
+                message.getDiscussionId(),
+                "message-deleted",
+                "Un message dans la discussion a été supprimé."
+        );
     }
 
 }

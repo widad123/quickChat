@@ -1,8 +1,14 @@
 package com.springproject.quickchat.service;
 
+import com.springproject.quickchat.Entity.UserEntity;
+import com.springproject.quickchat.dto.LoginDTO;
 import com.springproject.quickchat.dto.UserDTO;
 import com.springproject.quickchat.model.User;
 import com.springproject.quickchat.repository.UserRepository;
+import com.springproject.quickchat.utils.JwtAuthentication;
+import com.springproject.quickchat.utils.JwtUtil;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,5 +43,25 @@ public class UserService {
                 new ArrayList<>());
 
         userRepository.saveUser(user);
+    }
+
+    public String validateLogin(LoginDTO loginDTO, JwtUtil jwtUtil) {
+        UserEntity userEntity = userRepository.findByUsername(loginDTO.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+
+        if (!passwordEncoder.matches(loginDTO.getPassword(), userEntity.getPassword())) {
+            throw new IllegalArgumentException("Invalid username or password");
+        }
+
+        return jwtUtil.generateToken(userEntity.getUsername(),userEntity.getId());
+    }
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getDetails() instanceof JwtAuthentication) {
+            JwtAuthentication details = (JwtAuthentication) authentication.getDetails();
+            return (Long) details.getPrincipal();
+        }
+        throw new IllegalStateException("User ID not found in security context");
     }
 }

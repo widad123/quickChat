@@ -3,7 +3,6 @@ package com.springproject.quickchat.service;
 import com.springproject.quickchat.Entity.DiscussionEntity;
 import com.springproject.quickchat.Entity.UserEntity;
 import com.springproject.quickchat.dto.DiscussionDTO;
-import com.springproject.quickchat.model.Discussion;
 import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.UserRepository;
 import org.springframework.stereotype.Service;

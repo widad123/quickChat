@@ -1,6 +1,7 @@
 package com.springproject.quickchat.repository;
 
 import com.springproject.quickchat.Entity.FriendRequestEntity;
+import com.springproject.quickchat.Entity.UserEntity;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,16 @@ public class InMemoryFriendRequestRepository implements FriendRequestRepository 
     @Override
     public Optional<FriendRequestEntity> findById(Long id) {
         return Optional.ofNullable(storage.get(id));
+    }
+
+    @Override
+    public Optional<FriendRequestEntity> findBySenderIdAndReceiverId(Long senderId, Long receiverId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<FriendRequestEntity> findAllByReceiverId(Long receiverId) {
+        return List.of();
     }
 
     @Override
@@ -179,5 +190,10 @@ public class InMemoryFriendRequestRepository implements FriendRequestRepository 
     @Override
     public Page<FriendRequestEntity> findAll(Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public boolean existsBySenderAndReceiver(UserEntity sender, UserEntity receiver) {
+        return false;
     }
 }

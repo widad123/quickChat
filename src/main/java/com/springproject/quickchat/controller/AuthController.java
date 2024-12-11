@@ -1,7 +1,9 @@
 package com.springproject.quickchat.controller;
 
+import com.springproject.quickchat.dto.LoginDTO;
 import com.springproject.quickchat.dto.UserDTO;
 import com.springproject.quickchat.service.UserService;
+import com.springproject.quickchat.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,10 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
@@ -23,7 +27,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login() {
-        return "Logged in successfully!";
+    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
+        String token = userService.validateLogin(loginDTO, jwtUtil);
+        return ResponseEntity.ok(token);
     }
+
 }

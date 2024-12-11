@@ -4,6 +4,10 @@ import com.springproject.quickchat.dto.FileDTO;
 import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.File;
 import com.springproject.quickchat.model.Message;
+import com.springproject.quickchat.model.FileLog;
+import com.springproject.quickchat.model.MessageLog;
+import com.springproject.quickchat.repository.FileLogRepository;
+import com.springproject.quickchat.repository.MessageLogRepository;
 import com.springproject.quickchat.repository.MessageRepositoryInterface;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +19,17 @@ import java.util.stream.Collectors;
 public class MessageService {
     private final MessageRepositoryInterface messageRepository;
     private final DiscussionService discussionService;
+    private final MessageLogRepository messageLogRepository;
+    private final FileLogRepository fileLogRepository;
 
-    public MessageService(MessageRepositoryInterface messageRepository, DiscussionService discussionService) {
+    public MessageService(MessageRepositoryInterface messageRepository,
+                          DiscussionService discussionService,
+                          MessageLogRepository messageLogRepository,
+                          FileLogRepository fileLogRepository) {
         this.messageRepository = messageRepository;
         this.discussionService = discussionService;
+        this.messageLogRepository = messageLogRepository;
+        this.fileLogRepository = fileLogRepository;
     }
 
     public void sendMessage(Long senderId, MessageDTO messageDTO, FileDTO fileDTO) {
@@ -47,6 +58,24 @@ public class MessageService {
         );
 
         messageRepository.save(message);
+
+        MessageLog messageLog = new MessageLog(
+                senderId,
+                messageDTO.idRecipient(),
+                messageDTO.content(),
+                LocalDateTime.now()
+        );
+        messageLogRepository.save(messageLog);
+
+        if (fileDTO != null) {
+            FileLog fileLog = new FileLog(
+                    senderId,
+                    messageDTO.idRecipient(),
+                    fileDTO.getFileName(),
+                    LocalDateTime.now()
+            );
+            fileLogRepository.save(fileLog);
+        }
     }
 
     public List<Message> getMessagesForDiscussion(Long discussionId) {

@@ -3,8 +3,7 @@ package com.springproject.quickchat.service;
 import com.springproject.quickchat.dto.FileDTO;
 import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.Message;
-import com.springproject.quickchat.repository.DiscussionRepository;
-import com.springproject.quickchat.repository.InMemoryMessageRepository;
+import com.springproject.quickchat.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,10 +21,12 @@ class MessageServiceTest {
 
     @BeforeEach
     void setUp() {
-        DiscussionRepository discussionRepository = mock(DiscussionRepository.class);
-        messageRepository = new InMemoryMessageRepository();
+        messageRepository = mock(InMemoryMessageRepository.class);
         discussionService = mock(DiscussionService.class);
-        messageService = new MessageService(messageRepository, discussionService);
+
+        MessageLogRepository messageLogRepository = mock(MessageLogRepository.class);
+        FileLogRepository fileLogRepository = mock(FileLogRepository.class);
+        messageService = new MessageService(messageRepository, discussionService, messageLogRepository, fileLogRepository);
 
         messageRepository.addUser(1L, "Alice");
         messageRepository.addUser(2L, "Bob");

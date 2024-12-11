@@ -5,6 +5,7 @@ import com.springproject.quickchat.dto.MessageDTO;
 import com.springproject.quickchat.model.Message;
 import com.springproject.quickchat.repository.DiscussionRepository;
 import com.springproject.quickchat.repository.InMemoryMessageRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,13 +33,19 @@ class MessageServiceTest {
         messageService = new MessageService(messageRepository, discussionService, notificationService);
 
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("1", null)
+                new UsernamePasswordAuthenticationToken("1", null, List.of())
         );
 
         messageRepository.addUser(1L, "Alice");
         messageRepository.addUser(2L, "Bob");
         messageRepository.addDiscussion(1L, 1L, 2L);
     }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
 
     @Test
     void sendMessage_validMessageWithoutFile_savesSuccessfully() {
@@ -86,20 +93,25 @@ class MessageServiceTest {
         when(discussionService.findOrCreateDiscussion(1L, recipientId))
                 .thenThrow(new IllegalArgumentException("Discussion introuvable."));
 
-        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(messageDTO, null));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                messageService.sendMessage(messageDTO, null));
+
+        assertEquals("Discussion introuvable.", exception.getMessage());
     }
 
     @Test
     void sendMessage_emptyContent_throwsException() {
         Long recipientId = 2L;
         String content = "   ";
-        Long discussionId = 1L;
 
         MessageDTO messageDTO = new MessageDTO(recipientId, content);
 
-        when(discussionService.findOrCreateDiscussion(1L, recipientId)).thenReturn(discussionId);
+        when(discussionService.findOrCreateDiscussion(1L, recipientId)).thenReturn(1L);
 
-        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(messageDTO, null));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                messageService.sendMessage(messageDTO, null));
+
+        assertEquals("Le contenu du message ne peut pas être vide.", exception.getMessage());
     }
 
     @Test
@@ -128,6 +140,9 @@ class MessageServiceTest {
 
         when(discussionService.findOrCreateDiscussion(1L, recipientId)).thenReturn(discussionId);
 
-        assertThrows(IllegalArgumentException.class, () -> messageService.sendMessage(messageDTO, fileDTO));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                messageService.sendMessage(messageDTO, fileDTO));
+
+        assertEquals("Le fichier dépasse la taille maximale autorisée de 200 Mo.", exception.getMessage());
     }
 }

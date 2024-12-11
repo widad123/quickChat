@@ -1,34 +1,34 @@
 package com.springproject.quickchat.controller;
 
 import com.springproject.quickchat.Entity.FriendRequestEntity;
-import com.springproject.quickchat.model.FriendRequest;
-import com.springproject.quickchat.service.FriendRequestService;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
+import com.springproject.quickchat.config.SecurityUtils;
+import com.springproject.quickchat.dto.FriendRequestDto;
+import com.springproject.quickchat.repository.FriendRequestRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/friend-requests")
-public class FriendRequestController {
+@Service
+public class FriendRequestService {
 
-    private final FriendRequestService friendRequestService;
+    private final FriendRequestRepository friendRequestRepository;
 
-    public FriendRequestController(FriendRequestService friendRequestService) {
-        this.friendRequestService = friendRequestService;
+    public FriendRequestService(FriendRequestRepository friendRequestRepository) {
+        this.friendRequestRepository = friendRequestRepository;
     }
 
-    // Endpoint to send a friend request
-    @PostMapping("/send")
-    public ResponseEntity<FriendRequestEntity> sendFriendRequest(@RequestBody FriendRequest request ) {
-        FriendRequestEntity savedRequest = friendRequestService.sendFriendRequest(request);
-        return ResponseEntity.ok(savedRequest);
+    public void sendFriendRequest(FriendRequestDto friendRequestDto) {
+        Long senderId = SecurityUtils.getAuthenticatedUserId(); // Obtenir l'ID de l'utilisateur connecté
+
+        FriendRequestEntity friendRequest = new FriendRequestEntity();
+        friendRequest.setSenderId(senderId);
+        friendRequest.setReceiverId(friendRequestDto.getReceiverId());
+
+        friendRequestRepository.save(friendRequest);
     }
 
-    // Endpoint to get all friend requests
-    @GetMapping
-    public ResponseEntity<List<FriendRequestEntity>> getAllFriendRequests() {
-        List<FriendRequestEntity> requests = friendRequestService.getAllFriendRequests();
-        return ResponseEntity.ok(requests);
+    public List<FriendRequestEntity> getReceivedFriendRequests() {
+        Long receiverId = SecurityUtils.getAuthenticatedUserId();
+        return friendRequestRepository.findByReceiverId(receiverId);
     }
 }

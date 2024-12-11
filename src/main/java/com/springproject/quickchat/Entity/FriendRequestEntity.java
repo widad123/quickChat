@@ -22,6 +22,15 @@ public class FriendRequestEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    public FriendRequestEntity(Long senderId, Long receiverId) {
+        this.senderId=senderId;
+        this.receiverId=receiverId;
+    }
+
+    public FriendRequestEntity() {
+
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;

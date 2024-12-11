@@ -1,7 +1,8 @@
 package com.springproject.quickchat.service;
 
 import com.springproject.quickchat.Entity.FriendRequestEntity;
-import com.springproject.quickchat.model.FriendRequest;
+import com.springproject.quickchat.config.SecurityUtils;
+import com.springproject.quickchat.dto.FriendRequestDto;
 import com.springproject.quickchat.repository.FriendRequestRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +17,18 @@ public class FriendRequestService {
         this.friendRequestRepository = friendRequestRepository;
     }
 
-    // Send a new friend request
-    public FriendRequestEntity sendFriendRequest(FriendRequest request) {
-        return friendRequestRepository.saveFriendRequest(request.getSenderId(), request.getReceiverId());
+    public void sendFriendRequest(FriendRequestDto friendRequestDto) {
+        Long senderId = SecurityUtils.getAuthenticatedUserId();
+
+        FriendRequestEntity friendRequest = new FriendRequestEntity();
+        friendRequest.setSenderId(senderId);
+        friendRequest.setReceiverId(friendRequestDto.getReceiverId());
+
+        friendRequestRepository.save(friendRequest);
     }
 
-    // Get all friend requests
-    public List<FriendRequestEntity> getAllFriendRequests() {
-        return friendRequestRepository.findAll();
+    public List<FriendRequestEntity> getReceivedFriendRequests() {
+        Long receiverId = SecurityUtils.getAuthenticatedUserId(); // ID du destinataire connecté
+        return friendRequestRepository.findByReceiverId(receiverId);
     }
 }

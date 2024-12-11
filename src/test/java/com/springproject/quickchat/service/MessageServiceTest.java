@@ -74,6 +74,15 @@ class MessageServiceTest {
 
         when(discussionService.findOrCreateDiscussion(senderId, recipientId)).thenReturn(discussionId);
 
+        List<Message> savedMessages = new ArrayList<>();
+        doAnswer(invocation -> {
+            Message message = invocation.getArgument(0);
+            savedMessages.add(message);
+            return message;
+        }).when(messageRepository).save(any(Message.class));
+
+        when(messageRepository.findByDiscussionId(discussionId)).thenReturn(savedMessages);
+
         messageService.sendMessage(senderId, messageDTO, fileDTO);
 
         List<Message> messages = messageRepository.findByDiscussionId(discussionId);
@@ -81,6 +90,7 @@ class MessageServiceTest {
         assertNotNull(messages.get(0).getAttachedFile());
         assertEquals("example.jpg", messages.get(0).getAttachedFile().getName());
     }
+
 
     @Test
     void sendMessage_invalidDiscussion_throwsException() {
@@ -117,13 +127,17 @@ class MessageServiceTest {
         Message message1 = Message.create(1L, discussionId, 1L, 2L, "Hello", LocalDateTime.now(), null);
         Message message2 = Message.create(2L, discussionId, 1L, 2L, "How are you?", LocalDateTime.now(), null);
 
-        messageRepository.save(message1);
-        messageRepository.save(message2);
+        List<Message> mockMessages = List.of(message1, message2);
+
+        when(messageRepository.findByDiscussionId(discussionId)).thenReturn(mockMessages);
 
         List<Message> messages = messageService.getMessagesForDiscussion(discussionId);
 
         assertEquals(2, messages.size());
+        assertEquals("Hello", messages.get(0).getContent());
+        assertEquals("How are you?", messages.get(1).getContent());
     }
+
 
     @Test
     void editMessage_validMessage_updatesContent() {
@@ -132,26 +146,24 @@ class MessageServiceTest {
 
         Message message = Message.create(messageId, 1L, 1L, 2L, "Original content", LocalDateTime.now(), null);
 
-        messageRepository.save(message);
+        when(messageRepository.findById(messageId)).thenReturn(java.util.Optional.of(message));
 
         Message updatedMessage = messageService.editMessage(messageId, newContent);
 
         assertEquals(newContent, updatedMessage.getContent());
         assertTrue(updatedMessage.isEdited());
+        verify(messageRepository).save(message);
     }
 
     @Test
     void editMessage_deletedMessage_throwsException() {
+        Long messageId = 1L;
         Long discussionId = 1L;
         Long senderId = 1L;
         Long recipientId = 2L;
 
-        messageRepository.addUser(senderId, "Alice");
-        messageRepository.addUser(recipientId, "Bob");
-        messageRepository.addDiscussion(discussionId, senderId, recipientId);
-
         Message message = Message.create(
-                null,
+                messageId,
                 discussionId,
                 senderId,
                 recipientId,
@@ -161,20 +173,15 @@ class MessageServiceTest {
         );
         message.markAsDeleted();
 
-        messageRepository.save(message);
+        when(messageRepository.findById(messageId)).thenReturn(java.util.Optional.of(message));
 
-        Message savedMessage = messageRepository.findById(message.getId()).orElseThrow();
-        assertTrue(savedMessage.isDeleted(), "Le message doit être marqué comme supprimé.");
-
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> messageService.editMessage(message.getId(), "Updated content"));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> messageService.editMessage(messageId, "Updated content"));
 
         assertEquals("Impossible d'éditer un message supprimé.", exception.getMessage());
-
-        Message finalSavedMessage = messageRepository.findById(message.getId()).orElseThrow();
-        assertTrue(finalSavedMessage.isDeleted(), "Le message doit toujours être marqué comme supprimé.");
+        assertTrue(message.isDeleted(), "Le message doit toujours être marqué comme supprimé.");
+        verify(messageRepository, never()).save(message);
     }
-
 
 
 
